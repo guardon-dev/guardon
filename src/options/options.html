@@ -11,6 +11,109 @@
     button { margin-right: 5px; padding: 5px 10px; }
     #form { margin-top: 20px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #ddd; }
     input, select { margin-bottom: 8px; width: 100%; padding: 6px; }
+    
+    /* Delete confirmation dialog styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 10001;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .delete-modal {
+      background: #fff;
+      max-width: 400px;
+      width: 90%;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    
+    .delete-modal h3 {
+      margin-top: 0;
+      color: #d93025;
+      font-size: 18px;
+    }
+    
+    .delete-modal-message {
+      margin: 16px 0;
+      color: #333;
+      line-height: 1.4;
+    }
+    
+    .rule-details {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 4px;
+      margin: 16px 0;
+      text-align: left;
+      border-left: 4px solid #d93025;
+    }
+    
+    .rule-details div {
+      margin-bottom: 4px;
+    }
+    
+    .rule-details strong {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    
+    .delete-warning {
+      font-size: 12px;
+      color: #666;
+      margin: 16px 0 20px 0;
+      font-style: italic;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    
+    .btn-cancel {
+      padding: 8px 16px;
+      background: #f1f3f4;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    
+    .btn-cancel:hover {
+      background: #e8eaed;
+    }
+    
+    .btn-cancel:focus {
+      outline: 2px solid #4285f4;
+      outline-offset: 2px;
+    }
+    
+    .btn-delete {
+      padding: 8px 16px;
+      background: #d93025;
+      color: white;
+      border: 1px solid #d93025;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    
+    .btn-delete:hover {
+      background: #c5221a;
+    }
+    
+    .btn-delete:focus {
+      outline: 2px solid #4285f4;
+      outline-offset: 2px;
+    }
   </style>
 </head>
 <body>
@@ -93,6 +196,26 @@
   <!-- Kyverno import helper and YAML parser (load before options.js) -->
   <script src="../lib/js-yaml.min.js"></script>
   <script src="../utils/kyvernoImporter.js"></script>
+
+  <!-- Delete confirmation modal -->
+  <div id="deleteModal" class="modal-overlay">
+    <div class="delete-modal">
+      <h3>⚠️ Delete Rule?</h3>
+      <p id="deleteMessage" class="delete-modal-message">
+        Are you sure you want to delete this rule?
+      </p>
+      <div id="ruleDetails" class="rule-details">
+        <div><strong>ID:</strong> <span id="deleteRuleId"></span></div>
+        <div><strong>Description:</strong> <span id="deleteRuleDesc"></span></div>
+      </div>
+      <p class="delete-warning">This action cannot be undone.</p>
+      <div class="modal-buttons">
+        <button id="cancelDelete" class="btn-cancel">Cancel</button>
+        <button id="confirmDelete" class="btn-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Kyverno preview modal (placed before options.js so script can wire elements) -->
   <div id="kyvernoModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:10000;align-items:center;justify-content:center;">
     <div style="background:#fff;max-width:900px;width:90%;max-height:80%;overflow:auto;padding:16px;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
