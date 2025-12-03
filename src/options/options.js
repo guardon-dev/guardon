@@ -329,9 +329,9 @@ if (saveRuleBtn) saveRuleBtn.onclick = () => {
 
 const importRulesBtn = document.getElementById("importRules");
 if (importRulesBtn) importRulesBtn.onclick = async () => {
-  // Show the import panel where users can upload a JSON file or paste JSON
-  const panel = document.getElementById('importPanel');
-  if (panel) panel.style.display = 'block';
+  // Show the import panel modal where users can upload a JSON file or paste JSON
+  const modal = document.getElementById('importPanelModal');
+  if (modal) modal.style.display = 'block';
 };
 
 function saveRules() {
@@ -633,8 +633,9 @@ if (doImportBtn) doImportBtn.onclick = () => {
     renderTable();
     showToast(`Imported ${added} new, replaced ${replaced} existing rule(s)` + (replaced === 0 ? '' : ''), { background: '#059669' });
   }
-  // Hide and clear panel
-  const panel = document.getElementById('importPanel'); if (panel) panel.style.display = 'none';
+  // Hide and clear modal
+  const modal = document.getElementById('importPanelModal');
+  if (modal) modal.style.display = 'none';
   if (ta) ta.value = '';
   const file = document.getElementById('importFile'); if (file) file.value = null;
 };
@@ -653,10 +654,11 @@ if (pasteClipboardBtn) pasteClipboardBtn.onclick = async () => {
   }
 };
 
-// Cancel import panel and clear inputs
+// Cancel import panel modal and clear inputs
 const cancelImportBtn = document.getElementById('cancelImport');
 if (cancelImportBtn) cancelImportBtn.onclick = () => {
-  const panel = document.getElementById('importPanel'); if (panel) panel.style.display = 'none';
+  const modal = document.getElementById('importPanelModal');
+  if (modal) modal.style.display = 'none';
   const ta = document.getElementById('importTextarea'); if (ta) ta.value = '';
   const file = document.getElementById('importFile'); if (file) file.value = null;
   if (importUrlInput) importUrlInput.value = '';

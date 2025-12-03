@@ -9,7 +9,6 @@ describe('options page behavior', () => {
     // Minimal DOM elements expected by options.js
     document.body.innerHTML = `
       <table><tbody id="rulesBody"></tbody></table>
-      <div id="form" style="display:none;"></div>
       <div id="formTitle"></div>
       <input id="ruleId" />
       <input id="ruleDesc" />
@@ -27,12 +26,15 @@ describe('options page behavior', () => {
       <button id="cancelRule"></button>
       <button id="saveRule"></button>
       <button id="importRules"></button>
-      <div id="importPanel" style="display:none;"></div>
       <textarea id="importTextarea"></textarea>
       <input id="importFile" type="file" />
       <input id="importUrl" />
       <button id="fetchUrl"></button>
       <div id="toast"></div>
+      <!-- Modal for rule editing -->
+      <div id="ruleEditModal" class="modal-overlay" style="display:none;"></div>
+      <!-- Modal for import panel -->
+      <div id="importPanelModal" class="modal-overlay" style="display:none;"></div>
     `;
 
     // Mock chrome.storage.local

@@ -125,24 +125,28 @@
   </div>
   
   <!-- Import panel: allows file upload or paste JSON text -->
-  <div id="importPanel" style="display:none;margin-top:12px;background:#fff;padding:12px;border:1px solid #e6e6e6;border-radius:6px;">
-    <h3 style="margin-top:0">Import Rules</h3>
-    <div style="margin-bottom:8px;">
-      <input id="importFile" type="file" accept="application/json,.json">
-    </div>
-    <div style="margin-bottom:8px;">
-      <label for="importUrl" style="display:block;margin-bottom:4px;font-size:13px;color:#333;">Or fetch JSON from a URL (e.g. raw.githubusercontent.com):</label>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <input id="importUrl" type="url" placeholder="https://raw.githubusercontent.com/owner/repo/branch/path/to/file.json" style="flex:1;padding:6px;" />
-        <button id="fetchUrl" type="button">Fetch</button>
+
+  <!-- Import Panel Modal Popup -->
+  <div id="importPanelModal" class="modal-overlay">
+    <div class="delete-modal" style="max-width:500px;text-align:left;">
+      <h3 style="margin-top:0">Import Rules</h3>
+      <div style="margin-bottom:8px;">
+        <input id="importFile" type="file" accept="application/json,.json">
       </div>
-    </div>
-    <div style="margin-bottom:8px;">or paste JSON below:</div>
-    <textarea id="importTextarea" rows="8" style="width:100%;font-family:monospace;margin-bottom:8px;" placeholder='Paste JSON here (array of rules or { "customRules": [...] })'></textarea>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <button id="doImport" title="Import" aria-label="Import">📥</button>
-      <button id="pasteClipboard" title="Paste from clipboard" aria-label="Paste from clipboard">📋</button>
-      <button id="cancelImport" title="Cancel" aria-label="Cancel">✖</button>
+      <div style="margin-bottom:8px;">
+        <label for="importUrl" style="display:block;margin-bottom:4px;font-size:13px;color:#333;">Or fetch JSON from a URL (e.g. raw.githubusercontent.com):</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="importUrl" type="url" placeholder="https://raw.githubusercontent.com/owner/repo/branch/path/to/file.json" style="flex:1;padding:6px;" />
+          <button id="fetchUrl" type="button" title="Fetch" aria-label="Fetch">🔄</button>
+        </div>
+      </div>
+      <div style="margin-bottom:8px;">or paste JSON below:</div>
+      <textarea id="importTextarea" rows="8" style="width:100%;font-family:monospace;margin-bottom:8px;" placeholder='Paste JSON here (array of rules or { "customRules": [...] })'></textarea>
+      <div class="modal-buttons" style="margin-top:12px;">
+        <button id="doImport" title="Import" aria-label="Import">📥</button>
+        <button id="pasteClipboard" title="Paste from clipboard" aria-label="Paste from clipboard">📋</button>
+        <button id="cancelImport" title="Cancel" aria-label="Cancel">✖</button>
+      </div>
     </div>
   </div>
 
