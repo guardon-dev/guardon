@@ -108,6 +108,15 @@ npx eslint .
 
 All major changes should include new or updated tests. See the ROADMAP.md for our commitment to test coverage.
 
+## Warning Policy
+
+Guardon is committed to addressing all warnings identified by ESLint and other code quality tools. Contributors should:
+- Fix all warnings where possible.
+- If a warning is a false positive, mark it in the source code with a comment (e.g., `// eslint-disable-next-line` with an explanation).
+- Strive for zero warnings, but the project may accept a small number (less than 1 per 100 lines or less than 10 total) if justified.
+
+All pull requests are reviewed for warnings, and maintainers may request fixes or clarifications before merging.
+
 ## 🏆 Pull Request Excellence
 
 **What makes a PR mergeable:**
