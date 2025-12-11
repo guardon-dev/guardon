@@ -108,6 +108,14 @@ npx eslint .
 
 All major changes should include new or updated tests. See the ROADMAP.md for our commitment to test coverage.
 
+## Static Code Analysis
+
+Guardon applies static code analysis to all major production releases using [ESLint](https://eslint.org/), a FLOSS tool for JavaScript. All code must pass ESLint checks before release. Contributors are required to run ESLint and address any issues before submitting changes.
+
+## Continuous Static Analysis
+
+It is suggested that static source code analysis (ESLint) be run on every commit or at least daily. This can be automated using continuous integration (CI) tools such as GitHub Actions, so that code quality and security issues are detected as early as possible.
+
 ## Warning Policy
 
 Guardon is committed to addressing all warnings identified by ESLint and other code quality tools. Contributors should:
@@ -120,6 +128,10 @@ All pull requests are reviewed for warnings, and maintainers may request fixes o
 ## Warning Strictness
 
 Guardon strives to enable the strictest practical warning flags in ESLint and other code quality tools. We regularly review and update our linting configuration to catch as many issues as possible early in development. Contributors are encouraged to propose stricter rules or additional checks if they help improve code quality and maintainability.
+
+## Automated Linting with GitHub Actions
+
+All pushes and pull requests to the `main` branch automatically trigger a GitHub Actions workflow that runs ESLint on the codebase. This ensures that static analysis and code quality checks are continuously enforced. Please make sure your code passes ESLint locally before submitting a pull request to avoid CI failures.
 
 ## 🏆 Pull Request Excellence
 
