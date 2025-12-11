@@ -98,6 +98,16 @@ git push origin feature/amazing-new-feature
 - **Debugging**: Right-click extension icon → "Inspect popup" for DevTools
 - **Testing**: Focus on `src/utils/` modules where most logic lives
 
+## Code Quality and Linting
+
+Guardon uses [ESLint](https://eslint.org/) to check for code quality errors and common mistakes in all JavaScript files. Please run ESLint before submitting a pull request:
+
+```
+npx eslint .
+```
+
+All major changes should include new or updated tests. See the ROADMAP.md for our commitment to test coverage.
+
 ## 🏆 Pull Request Excellence
 
 **What makes a PR mergeable:**
