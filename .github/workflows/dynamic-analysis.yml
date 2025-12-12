@@ -1,0 +1,33 @@
+name: Dynamic Analysis (OWASP ZAP)
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start application (example)
+        run: |
+          npm install
+          npm run build
+          npm start &
+          sleep 10
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: 'http://localhost:3000' # Change to your app's URL
+          fail_action: false
+          allow_issue_writing: false
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: report_html.html
