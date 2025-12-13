@@ -157,6 +157,20 @@
       color: #1a1a1a;
       font-weight: 600;
     }
+    .rule-counter {
+      margin: 12px 0;
+      padding: 10px 14px;
+      background: #f1f5f9;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #0a2540;
+    }
+
+    .rule-counter span {
+      font-weight: 600;
+    }
+
     
     .delete-warning {
       font-size: 12px;
@@ -209,6 +223,7 @@
       outline: 2px solid #4285f4;
       outline-offset: 2px;
     }
+
   </style>
 </head>
 <body>
@@ -217,6 +232,11 @@
     <button id="addRule" title="Add Rule" aria-label="Add Rule">➕</button>
     <button id="importRules" title="Import Rules" aria-label="Import Rules">📥</button>
     <button id="exportRules" title="Export Rules" aria-label="Export Rules">📤</button>
+
+    <span id="ruleCounter" class="rule-counter">
+        <span id="ruleCounterText">No rules configured</span>
+    </span>
+
   </div>
   
   <!-- Import panel: allows file upload or paste JSON text -->
@@ -246,7 +266,8 @@
   </div>
 
   <!-- Resource validation is performed by the extension runtime (popup/content script). -->
-  
+
+
   <table id="rulesTable">
     <thead>
       <tr>
@@ -260,6 +281,7 @@
     </thead>
     <tbody id="rulesBody"></tbody>
   </table>
+ 
 
 
   <!-- Rule Edit Modal Popup -->

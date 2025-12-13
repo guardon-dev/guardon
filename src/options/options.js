@@ -106,6 +106,20 @@ function showToast(msg, opts = {}) {
     setTimeout(() => (toast.style.display = "none"), 300);
   }, opts.duration || 2500);
 }
+function updateRuleCounter() {
+  const el = document.getElementById("ruleCounterText");
+  if (!el) return;
+
+  const total = rules.length;
+  const enabled = rules.filter(r => r.enabled !== false).length;
+  const disabled = total - enabled;
+
+  if (total === 0) {
+    el.textContent = "No rules configured";
+  } else {
+    el.textContent = `Total: ${total} · Enabled: ${enabled} · Disabled: ${disabled}`;
+  }
+}
 
 function renderTable() {
   if (!tableBody) {return;}
@@ -121,6 +135,7 @@ function renderTable() {
       rules[idx].enabled = !!enChk.checked;
       saveRules();
       tr.style.opacity = enChk.checked ? "1" : "0.5";
+      updateRuleCounter();
     });
     tdEnabled.appendChild(enChk);
     tdEnabled.style.textAlign = "center";
@@ -155,6 +170,8 @@ function renderTable() {
     tr.appendChild(tdActions);
     tableBody.appendChild(tr);
   });
+  updateRuleCounter();
+
 }
 
 function hideKyvernoPreview() {
