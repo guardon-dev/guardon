@@ -1,38 +1,38 @@
 // ============ RULE IMPORT FROM URL & CLIPBOARD, KYVERNO PREVIEW ============
-const importUrlInput = document.getElementById('importUrl');
-const fetchUrlBtn = document.getElementById('fetchUrl');
-const pasteClipboardBtn = document.getElementById('pasteClipboard');
-const importTextarea = document.getElementById('importTextarea');
-const importFile = document.getElementById('importFile');
-const doImportBtn = document.getElementById('doImport');
-const importPanelModal = document.getElementById('importPanelModal');
+const importUrlInput = document.getElementById("importUrl");
+const fetchUrlBtn = document.getElementById("fetchUrl");
+const pasteClipboardBtn = document.getElementById("pasteClipboard");
+const importTextarea = document.getElementById("importTextarea");
+const importFile = document.getElementById("importFile");
+const doImportBtn = document.getElementById("doImport");
+const importPanelModal = document.getElementById("importPanelModal");
 
 if (fetchUrlBtn) {
-  fetchUrlBtn.addEventListener('click', async () => {
-    const url = (importUrlInput && importUrlInput.value || '').trim();
+  fetchUrlBtn.addEventListener("click", async () => {
+    const url = (importUrlInput && importUrlInput.value || "").trim();
     if (!url) {
-      showToast('Enter a URL to fetch', { background: '#b91c1c' });
+      showToast("Enter a URL to fetch", { background: "#b91c1c" });
       return;
     }
     try {
       new URL(url);
     } catch (e) {
-      showToast('Invalid URL', { background: '#b91c1c' });
+      showToast("Invalid URL", { background: "#b91c1c" });
       return;
     }
     if (importTextarea) {
-      showToast('Fetching URL...', { background: '#f59e0b', duration: 4000 });
+      showToast("Fetching URL...", { background: "#f59e0b", duration: 4000 });
       try {
         const resp = await fetch(url);
         if (resp.ok) {
           const text = await resp.text();
           importTextarea.value = text;
-          showToast('Fetched content into import area', { background: '#059669' });
+          showToast("Fetched content into import area", { background: "#059669" });
         } else {
-          showToast('Failed to fetch URL: ' + resp.status, { background: '#b91c1c' });
+          showToast("Failed to fetch URL: " + resp.status, { background: "#b91c1c" });
         }
       } catch (e) {
-        showToast('Failed to fetch URL: ' + (e && e.message ? e.message : String(e)), { background: '#b91c1c' });
+        showToast("Failed to fetch URL: " + (e && e.message ? e.message : String(e)), { background: "#b91c1c" });
       }
     }
   });
@@ -43,112 +43,112 @@ if (pasteClipboardBtn && importTextarea) {
     try {
       const text = await navigator.clipboard.readText();
       importTextarea.value = text;
-      showToast('Pasted from clipboard', { background: '#0ea5e9' });
+      showToast("Pasted from clipboard", { background: "#0ea5e9" });
     } catch (e) {
-      showToast('Failed to read clipboard', { background: '#b91c1c' });
+      showToast("Failed to read clipboard", { background: "#b91c1c" });
     }
   };
 }
 
 // Kyverno preview modal logic (wrappers for kyvernoPreview.js)
-import { showKyvernoPreview as kpShow, hideKyvernoPreview as kpHide } from './kyvernoPreview.js';
+import { showKyvernoPreview as kpShow, hideKyvernoPreview as kpHide } from "./kyvernoPreview.js";
 let _kyvernoPreviewState = null;
 function showKyvernoPreview(converted, rawText, meta = {}) {
   _kyvernoPreviewState = { converted, rawText, meta };
   try {
     kpShow(converted, rawText, meta);
   } catch (e) {
-    showToast('Failed to render Kyverno preview', { background: '#b91c1c' });
+    showToast("Failed to render Kyverno preview", { background: "#b91c1c" });
   }
 }
-const kyvernoCancelBtn = document.getElementById('kyvernoCancel');
-const kyvernoImportRawBtn = document.getElementById('kyvernoImportRaw');
-const kyvernoImportConvertedBtn = document.getElementById('kyvernoImportConverted');
-const kyvernoPreviewBody = document.getElementById('kyvernoPreviewBody');
-if (kyvernoCancelBtn) kyvernoCancelBtn.addEventListener('click', () => { _kyvernoPreviewState = null; try { kpHide(); } catch {} });
-if (kyvernoImportRawBtn) kyvernoImportRawBtn.addEventListener('click', () => {
-  if (!_kyvernoPreviewState) return;
+const kyvernoCancelBtn = document.getElementById("kyvernoCancel");
+const kyvernoImportRawBtn = document.getElementById("kyvernoImportRaw");
+const kyvernoImportConvertedBtn = document.getElementById("kyvernoImportConverted");
+const kyvernoPreviewBody = document.getElementById("kyvernoPreviewBody");
+if (kyvernoCancelBtn) {kyvernoCancelBtn.addEventListener("click", () => { _kyvernoPreviewState = null; try { kpHide(); } catch {} });}
+if (kyvernoImportRawBtn) {kyvernoImportRawBtn.addEventListener("click", () => {
+  if (!_kyvernoPreviewState) {return;}
   saveRawKyverno(_kyvernoPreviewState.rawText, _kyvernoPreviewState.meta);
   _kyvernoPreviewState = null;
   try { kpHide(); } catch {}
-});
-if (kyvernoImportConvertedBtn) kyvernoImportConvertedBtn.addEventListener('click', () => {
-  if (!_kyvernoPreviewState) return;
-  const boxes = kyvernoPreviewBody ? kyvernoPreviewBody.querySelectorAll('input.kyvernoRowCheckbox') : [];
+});}
+if (kyvernoImportConvertedBtn) {kyvernoImportConvertedBtn.addEventListener("click", () => {
+  if (!_kyvernoPreviewState) {return;}
+  const boxes = kyvernoPreviewBody ? kyvernoPreviewBody.querySelectorAll("input.kyvernoRowCheckbox") : [];
   const selected = [];
   boxes.forEach(b => {
     try {
       if (b.checked) {
         const idx = Number(b.value);
         const item = _kyvernoPreviewState.converted[idx];
-        if (item) selected.push(item);
+        if (item) {selected.push(item);}
       }
     } catch {}
   });
   if (!selected.length) {
-    showToast('No converted rules selected to import.', { background: '#b91c1c' });
+    showToast("No converted rules selected to import.", { background: "#b91c1c" });
     return;
   }
   applyNormalizedRules(selected);
   _kyvernoPreviewState = null;
   try { kpHide(); } catch {}
-});
+});}
 
 
 // ============ CRD SCHEMA HANDLERS ============
-const crdFileEl = document.getElementById('crdFile');
-const crdTextarea = document.getElementById('crdTextarea');
-const crdLoadBtn = document.getElementById('crdLoad');
-const crdPreviewBtn = document.getElementById('crdPreview');
-const crdClearBtn = document.getElementById('crdClear');
-const crdStatus = document.getElementById('crdStatus');
+const crdFileEl = document.getElementById("crdFile");
+const crdTextarea = document.getElementById("crdTextarea");
+const crdLoadBtn = document.getElementById("crdLoad");
+const crdPreviewBtn = document.getElementById("crdPreview");
+const crdClearBtn = document.getElementById("crdClear");
+const crdStatus = document.getElementById("crdStatus");
 
 function showCRDStatus(msg) {
-  if (crdStatus) crdStatus.textContent = msg;
+  if (crdStatus) {crdStatus.textContent = msg;}
 }
 
 function refreshCRDDisplay() {
   try {
-    chrome.storage.local.get('clusterSchema', (data) => {
+    chrome.storage.local.get("clusterSchema", (data) => {
       const cs = data && data.clusterSchema;
-      const crdDisplay = document.getElementById('crdDisplay');
+      const crdDisplay = document.getElementById("crdDisplay");
       if (!cs || !Array.isArray(cs.crds) || cs.crds.length === 0) {
-        if (crdDisplay) crdDisplay.style.display = 'none';
+        if (crdDisplay) {crdDisplay.style.display = "none";}
         return;
       }
-      if (crdDisplay) crdDisplay.style.display = 'block';
-      const crdCount = document.getElementById('crdCount');
-      if (crdCount) crdCount.textContent = cs.crds.length;
-      const tableBody = document.getElementById('crdTableBody');
+      if (crdDisplay) {crdDisplay.style.display = "block";}
+      const crdCount = document.getElementById("crdCount");
+      if (crdCount) {crdCount.textContent = cs.crds.length;}
+      const tableBody = document.getElementById("crdTableBody");
       if (tableBody) {
-        tableBody.innerHTML = '';
+        tableBody.innerHTML = "";
         cs.crds.forEach((crd, idx) => {
-          const tr = document.createElement('tr');
-          tr.style.borderBottom = '1px solid #dcfce7';
-          const name = (crd.metadata && crd.metadata.name) || '—';
-          const group = (crd.spec && crd.spec.group) || '—';
-          const scope = (crd.spec && crd.spec.scope) || '—';
-          const plural = (crd.spec && crd.spec.names && crd.spec.names.plural) || '—';
-          const singular = (crd.spec && crd.spec.names && crd.spec.names.singular) || '—';
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid #dcfce7";
+          const name = (crd.metadata && crd.metadata.name) || "—";
+          const group = (crd.spec && crd.spec.group) || "—";
+          const scope = (crd.spec && crd.spec.scope) || "—";
+          const plural = (crd.spec && crd.spec.names && crd.spec.names.plural) || "—";
+          const singular = (crd.spec && crd.spec.names && crd.spec.names.singular) || "—";
           [name, group, scope, plural, singular].forEach((text) => {
-            const td = document.createElement('td');
+            const td = document.createElement("td");
             td.textContent = text;
-            td.style.padding = '6px';
-            td.style.borderRight = '1px solid #dcfce7';
+            td.style.padding = "6px";
+            td.style.borderRight = "1px solid #dcfce7";
             tr.appendChild(td);
           });
           // Add delete button for each row
-          const tdDelete = document.createElement('td');
-          const delBtn = document.createElement('button');
-          delBtn.textContent = '🗑';
-          delBtn.title = 'Delete';
-          delBtn.style.padding = '4px 8px';
+          const tdDelete = document.createElement("td");
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "🗑";
+          delBtn.title = "Delete";
+          delBtn.style.padding = "4px 8px";
           delBtn.onclick = function() {
-            chrome.storage.local.get('clusterSchema', (data) => {
+            chrome.storage.local.get("clusterSchema", (data) => {
               const current = data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
               current.crds.splice(idx, 1);
               chrome.storage.local.set({ clusterSchema: current }, () => {
-                showToast('CRD deleted', { background: '#b91c1c' });
+                showToast("CRD deleted", { background: "#b91c1c" });
                 refreshCRDDisplay();
               });
             });
@@ -159,82 +159,82 @@ function refreshCRDDisplay() {
         });
       }
     });
-  } catch (e) { console.error('refreshCRDDisplay error:', e); }
+  } catch (e) { console.error("refreshCRDDisplay error:", e); }
 }
 
-if (crdFileEl) crdFileEl.addEventListener('change', (ev) => {
+if (crdFileEl) {crdFileEl.addEventListener("change", (ev) => {
   const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
+  if (!f) {return;}
   const reader = new FileReader();
   reader.onload = () => {
-    if (crdTextarea) crdTextarea.value = String(reader.result || '');
-    showToast('Loaded CRD file', { background: '#0ea5e9' });
+    if (crdTextarea) {crdTextarea.value = String(reader.result || "");}
+    showToast("Loaded CRD file", { background: "#0ea5e9" });
   };
-  reader.onerror = () => showToast('Failed to read file', { background: '#b91c1c' });
+  reader.onerror = () => showToast("Failed to read file", { background: "#b91c1c" });
   reader.readAsText(f);
-});
+});}
 
-if (crdLoadBtn) crdLoadBtn.addEventListener('click', async () => {
-  const text = crdTextarea ? crdTextarea.value : '';
+if (crdLoadBtn) {crdLoadBtn.addEventListener("click", async () => {
+  const text = crdTextarea ? crdTextarea.value : "";
   if (!text || !String(text).trim()) {
-    showToast('Paste or load CRD file first', { background: '#b91c1c' });
+    showToast("Paste or load CRD file first", { background: "#b91c1c" });
     return;
   }
   const parsed = await parseSchemaText(text);
   if (parsed.errors && parsed.errors.length) {
-    showToast('Failed to parse CRDs: ' + parsed.errors.join('; '), { background: '#b91c1c' });
+    showToast("Failed to parse CRDs: " + parsed.errors.join("; "), { background: "#b91c1c" });
     return;
   }
   if (!Array.isArray(parsed.crds) || parsed.crds.length === 0) {
-    showToast('No CRDs found. Is this a valid CRD YAML?', { background: '#fbbf24' });
+    showToast("No CRDs found. Is this a valid CRD YAML?", { background: "#fbbf24" });
     return;
   }
   try {
-    chrome.storage.local.get('clusterSchema', (data) => {
+    chrome.storage.local.get("clusterSchema", (data) => {
       const current = data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
       current.crds = parsed.crds;
       chrome.storage.local.set({ clusterSchema: current }, () => {
-        showToast(`CRDs saved: ${parsed.crds.length} CRD(s)`, { background: '#059669' });
+        showToast(`CRDs saved: ${parsed.crds.length} CRD(s)`, { background: "#059669" });
         showCRDStatus(`Loaded: ${parsed.crds.length} CRD(s)`);
         refreshCRDDisplay();
       });
     });
   } catch (e) {
-    console.error('save crds failed', e);
-    showToast('Failed to save CRDs', { background: '#b91c1c' });
+    console.error("save crds failed", e);
+    showToast("Failed to save CRDs", { background: "#b91c1c" });
   }
-});
+});}
 
-if (crdPreviewBtn) crdPreviewBtn.addEventListener('click', async () => {
-  const text = crdTextarea ? crdTextarea.value : '';
+if (crdPreviewBtn) {crdPreviewBtn.addEventListener("click", async () => {
+  const text = crdTextarea ? crdTextarea.value : "";
   if (!text || !String(text).trim()) {
-    showToast('Paste or load CRD file first', { background: '#b91c1c' });
+    showToast("Paste or load CRD file first", { background: "#b91c1c" });
     return;
   }
   const parsed = await parseSchemaText(text);
   if (parsed.errors && parsed.errors.length) {
-    showToast('Failed to parse: ' + parsed.errors.join('; '), { background: '#b91c1c' });
+    showToast("Failed to parse: " + parsed.errors.join("; "), { background: "#b91c1c" });
     return;
   }
   const count = Array.isArray(parsed.crds) ? parsed.crds.length : 0;
   if (count === 0) {
-    showToast('No CRDs found in document', { background: '#fbbf24' });
+    showToast("No CRDs found in document", { background: "#fbbf24" });
     return;
   }
-  showToast(`Found ${count} CRD(s)`, { background: '#0ea5e9', duration: 4000 });
-});
+  showToast(`Found ${count} CRD(s)`, { background: "#0ea5e9", duration: 4000 });
+});}
 
-if (crdClearBtn) crdClearBtn.addEventListener('click', () => {
-  if (crdTextarea) crdTextarea.value = '';
-  showCRDStatus('');
-  showToast('Cleared input fields', { background: '#6b7280' });
-});
+if (crdClearBtn) {crdClearBtn.addEventListener("click", () => {
+  if (crdTextarea) {crdTextarea.value = "";}
+  showCRDStatus("");
+  showToast("Cleared input fields", { background: "#6b7280" });
+});}
 
 // Load stored schema on startup to reflect status
 try {
-  chrome.storage.local.get('clusterSchema', (data) => {
+  chrome.storage.local.get("clusterSchema", (data) => {
     const cs = data && data.clusterSchema;
-    if (!cs) return;
+    if (!cs) {return;}
     if (Array.isArray(cs.openapis) && cs.openapis.length > 0) {
       showOpenAPIStatus(`Loaded: ${cs.openapis.length} OpenAPI schema(s)`);
       refreshOpenAPIDisplay();
@@ -262,23 +262,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const openAPIStatus = document.getElementById("openAPIStatus");
   let lastOpenAPIFileName = null;
 
-  if (openAPIFile) openAPIFile.addEventListener('change', (ev) => {
+  if (openAPIFile) {openAPIFile.addEventListener("change", (ev) => {
     const f = ev.target.files && ev.target.files[0];
-    if (!f) return;
+    if (!f) {return;}
     const reader = new FileReader();
     reader.onload = () => {
       if (!openAPITextarea) {
-        console.error('openAPITextarea not found in DOM.');
-        showToast('Error: OpenAPI textarea missing', { background: '#b91c1c' });
+        console.error("openAPITextarea not found in DOM.");
+        showToast("Error: OpenAPI textarea missing", { background: "#b91c1c" });
         return;
       }
-      openAPITextarea.value = String(reader.result || '');
-      showToast('Loaded OpenAPI file', { background: '#0ea5e9' });
+      openAPITextarea.value = String(reader.result || "");
+      showToast("Loaded OpenAPI file", { background: "#0ea5e9" });
       lastOpenAPIFileName = f.name || null;
     };
-    reader.onerror = () => showToast('Failed to read file', { background: '#b91c1c' });
+    reader.onerror = () => showToast("Failed to read file", { background: "#b91c1c" });
     reader.readAsText(f);
-  });
+  });}
 
   // ...move all other OpenAPI modal event listeners here as needed...
 });
@@ -303,60 +303,60 @@ const openAPIStatus = document.getElementById("openAPIStatus");
 let lastOpenAPIFileName = null;
 
 function showOpenAPIStatus(msg) {
-  if (openAPIStatus) openAPIStatus.textContent = msg;
+  if (openAPIStatus) {openAPIStatus.textContent = msg;}
 }
 
 function refreshOpenAPIDisplay() {
   try {
-    console.debug('[refreshOpenAPIDisplay] called');
-    chrome.storage.local.get('clusterSchema', (data) => {
+    console.debug("[refreshOpenAPIDisplay] called");
+    chrome.storage.local.get("clusterSchema", (data) => {
       const cs = data && data.clusterSchema;
-      const openAPIDisplay = document.getElementById('openAPIDisplay');
+      const openAPIDisplay = document.getElementById("openAPIDisplay");
       if (!cs || !Array.isArray(cs.openapis) || cs.openapis.length === 0) {
-        console.debug('[refreshOpenAPIDisplay] hiding - no openapis', cs);
-        if (openAPIDisplay) openAPIDisplay.style.display = 'none';
+        console.debug("[refreshOpenAPIDisplay] hiding - no openapis", cs);
+        if (openAPIDisplay) {openAPIDisplay.style.display = "none";}
         return;
       }
-      console.debug('[refreshOpenAPIDisplay] showing openapis:', cs.openapis.length, cs.openapis);
-      if (openAPIDisplay) openAPIDisplay.style.display = 'block';
-      const openAPICount = document.getElementById('openAPICount');
-      if (openAPICount) openAPICount.textContent = cs.openapis.length;
-      const tableBody = document.getElementById('openAPITableBody');
+      console.debug("[refreshOpenAPIDisplay] showing openapis:", cs.openapis.length, cs.openapis);
+      if (openAPIDisplay) {openAPIDisplay.style.display = "block";}
+      const openAPICount = document.getElementById("openAPICount");
+      if (openAPICount) {openAPICount.textContent = cs.openapis.length;}
+      const tableBody = document.getElementById("openAPITableBody");
       if (tableBody) {
-        tableBody.innerHTML = '';
+        tableBody.innerHTML = "";
         cs.openapis.forEach((rec, idx) => {
-          const tr = document.createElement('tr');
-          tr.style.borderBottom = '1px solid #bfdbfe';
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid #bfdbfe";
           const oas = rec && rec.spec ? rec.spec : rec;
           const meta = rec && rec.meta ? rec.meta : {};
-          const title = (oas && oas.info && oas.info.title) || 'OpenAPI Spec';
-          const cluster = meta.cluster || '(none)';
-          const versionMeta = meta.version || '(none)';
-          const apiVersion = (oas && oas.info && oas.info.version) || '(unknown)';
-          const openapiVersion = (oas && (oas.openapi || oas.swagger)) || '(unknown)';
+          const title = (oas && oas.info && oas.info.title) || "OpenAPI Spec";
+          const cluster = meta.cluster || "(none)";
+          const versionMeta = meta.version || "(none)";
+          const apiVersion = (oas && oas.info && oas.info.version) || "(unknown)";
+          const openapiVersion = (oas && (oas.openapi || oas.swagger)) || "(unknown)";
           const paths = (oas && oas.paths && Object.keys(oas.paths).length) || 0;
           const components = (oas && oas.components && Object.keys(oas.components).length) || 0;
-          const source = meta.source || '(unknown)';
-          const loadedAt = meta.loadedAt ? new Date(meta.loadedAt).toLocaleString() : '(unknown)';
+          const source = meta.source || "(unknown)";
+          const loadedAt = meta.loadedAt ? new Date(meta.loadedAt).toLocaleString() : "(unknown)";
           [title, cluster, versionMeta, apiVersion, openapiVersion, paths.toString(), components.toString(), source, loadedAt].forEach((text, idx2) => {
-            const td = document.createElement('td');
+            const td = document.createElement("td");
             td.textContent = text;
-            td.style.padding = '6px';
-            td.style.borderRight = idx2 < 8 ? '1px solid #bfdbfe' : 'none';
+            td.style.padding = "6px";
+            td.style.borderRight = idx2 < 8 ? "1px solid #bfdbfe" : "none";
             tr.appendChild(td);
           });
           // Add delete button for each row
-          const tdDelete = document.createElement('td');
-          const delBtn = document.createElement('button');
-          delBtn.textContent = '🗑';
-          delBtn.title = 'Delete';
-          delBtn.style.padding = '4px 8px';
+          const tdDelete = document.createElement("td");
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "🗑";
+          delBtn.title = "Delete";
+          delBtn.style.padding = "4px 8px";
           delBtn.onclick = function() {
-            chrome.storage.local.get('clusterSchema', (data) => {
+            chrome.storage.local.get("clusterSchema", (data) => {
               const current = data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
               current.openapis.splice(idx, 1);
               chrome.storage.local.set({ clusterSchema: current }, () => {
-                showToast('OpenAPI schema deleted', { background: '#b91c1c' });
+                showToast("OpenAPI schema deleted", { background: "#b91c1c" });
                 refreshOpenAPIDisplay();
               });
             });
@@ -367,26 +367,26 @@ function refreshOpenAPIDisplay() {
         });
       }
     });
-  } catch (e) { console.error('refreshOpenAPIDisplay error:', e); }
+  } catch (e) { console.error("refreshOpenAPIDisplay error:", e); }
 }
 
-if (openAPIFile) openAPIFile.addEventListener('change', (ev) => {
+if (openAPIFile) {openAPIFile.addEventListener("change", (ev) => {
   const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
+  if (!f) {return;}
   const reader = new FileReader();
   reader.onload = () => {
     if (!openAPITextarea) {
-      console.error('openAPITextarea not found in DOM.');
-      showToast('Error: OpenAPI textarea missing', { background: '#b91c1c' });
+      console.error("openAPITextarea not found in DOM.");
+      showToast("Error: OpenAPI textarea missing", { background: "#b91c1c" });
       return;
     }
-    openAPITextarea.value = String(reader.result || '');
-    showToast('Loaded OpenAPI file', { background: '#0ea5e9' });
+    openAPITextarea.value = String(reader.result || "");
+    showToast("Loaded OpenAPI file", { background: "#0ea5e9" });
     lastOpenAPIFileName = f.name || null;
   };
-  reader.onerror = () => showToast('Failed to read file', { background: '#b91c1c' });
+  reader.onerror = () => showToast("Failed to read file", { background: "#b91c1c" });
   reader.readAsText(f);
-});
+});}
 
 if (openAPIImportBtn && openAPIPanelModal) {
   openAPIImportBtn.onclick = () => {
@@ -396,65 +396,65 @@ if (openAPIImportBtn && openAPIPanelModal) {
 if (closeOpenAPIModalBtn && openAPIPanelModal) {
   closeOpenAPIModalBtn.onclick = () => {
     openAPIPanelModal.style.display = "none";
-    if (openAPIFile) openAPIFile.value = "";
-    if (openAPITextarea) openAPITextarea.value = "";
-    if (openAPICluster) openAPICluster.value = "";
-    if (openAPIVersion) openAPIVersion.value = "";
-    if (openAPIStatus) openAPIStatus.textContent = "";
+    if (openAPIFile) {openAPIFile.value = "";}
+    if (openAPITextarea) {openAPITextarea.value = "";}
+    if (openAPICluster) {openAPICluster.value = "";}
+    if (openAPIVersion) {openAPIVersion.value = "";}
+    if (openAPIStatus) {openAPIStatus.textContent = "";}
   };
 }
 
 if (openAPIClearBtn) {
   openAPIClearBtn.onclick = () => {
-    if (openAPIFile) openAPIFile.value = "";
-    if (openAPITextarea) openAPITextarea.value = "";
-    if (openAPICluster) openAPICluster.value = "";
-    if (openAPIVersion) openAPIVersion.value = "";
-    if (openAPIStatus) openAPIStatus.textContent = "";
+    if (openAPIFile) {openAPIFile.value = "";}
+    if (openAPITextarea) {openAPITextarea.value = "";}
+    if (openAPICluster) {openAPICluster.value = "";}
+    if (openAPIVersion) {openAPIVersion.value = "";}
+    if (openAPIStatus) {openAPIStatus.textContent = "";}
   };
 }
 
-if (openAPILoadBtn) openAPILoadBtn.addEventListener('click', async () => {
+if (openAPILoadBtn) {openAPILoadBtn.addEventListener("click", async () => {
   openAPILoadBtn.disabled = true;
   try {
-    const text = openAPITextarea ? openAPITextarea.value : '';
+    const text = openAPITextarea ? openAPITextarea.value : "";
     if (!text || !String(text).trim()) {
-      showToast('Paste or load an OpenAPI file first', { background: '#b91c1c' });
+      showToast("Paste or load an OpenAPI file first", { background: "#b91c1c" });
       openAPILoadBtn.disabled = false;
       return;
     }
 
-    const cluster = openAPICluster?.value?.trim() || '';
-    const version = openAPIVersion?.value?.trim() || '';
+    const cluster = openAPICluster?.value?.trim() || "";
+    const version = openAPIVersion?.value?.trim() || "";
     if (!cluster || !version) {
-      showToast('Cluster and Version are required', { background: '#b91c1c' });
+      showToast("Cluster and Version are required", { background: "#b91c1c" });
       openAPILoadBtn.disabled = false;
       return;
     }
 
     const parsed = await parseSchemaText(text);
     if (parsed.errors && parsed.errors.length) {
-      showToast('Failed to parse OpenAPI: ' + parsed.errors.join('; '), { background: '#b91c1c' });
+      showToast("Failed to parse OpenAPI: " + parsed.errors.join("; "), { background: "#b91c1c" });
       openAPILoadBtn.disabled = false;
       return;
     }
 
     // Extract all OpenAPI schemas from the parsed documents
     const openapis = [];
-    if (parsed.openapi) openapis.push(parsed.openapi);
+    if (parsed.openapi) {openapis.push(parsed.openapi);}
     parsed.docs.forEach((doc) => {
-      if (doc && typeof doc === 'object' && (doc.openapi || doc.swagger || doc.paths)) {
+      if (doc && typeof doc === "object" && (doc.openapi || doc.swagger || doc.paths)) {
         openapis.push(doc);
       }
     });
 
     if (openapis.length === 0) {
-      showToast('No OpenAPI specification found. Is this a valid OpenAPI document?', { background: '#fbbf24' });
+      showToast("No OpenAPI specification found. Is this a valid OpenAPI document?", { background: "#fbbf24" });
       openAPILoadBtn.disabled = false;
       return;
     }
 
-    chrome.storage.local.get('clusterSchema', (data) => {
+    chrome.storage.local.get("clusterSchema", (data) => {
       const current = data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
       // Wrap new OpenAPI specs with metadata and normalize existing entries
       const newWrapped = openapis.map((oas) => ({
@@ -462,7 +462,7 @@ if (openAPILoadBtn) openAPILoadBtn.addEventListener('click', async () => {
         meta: {
           cluster,
           version,
-          source: lastOpenAPIFileName || 'manual',
+          source: lastOpenAPIFileName || "manual",
           loadedAt: Date.now(),
         }
       }));
@@ -473,26 +473,26 @@ if (openAPILoadBtn) openAPILoadBtn.addEventListener('click', async () => {
       });
       current.openapis = [...filtered, ...newWrapped];
       chrome.storage.local.set({ clusterSchema: current }, () => {
-        showToast('OpenAPI schema(s) loaded', { background: '#0ea5e9' });
-        if (openAPIPanelModal) openAPIPanelModal.style.display = 'none';
+        showToast("OpenAPI schema(s) loaded", { background: "#0ea5e9" });
+        if (openAPIPanelModal) {openAPIPanelModal.style.display = "none";}
         refreshOpenAPIDisplay();
         // v0.4: always show table after import
-        const openAPIDisplay = document.getElementById('openAPIDisplay');
-        if (openAPIDisplay) openAPIDisplay.style.display = 'block';
+        const openAPIDisplay = document.getElementById("openAPIDisplay");
+        if (openAPIDisplay) {openAPIDisplay.style.display = "block";}
         openAPILoadBtn.disabled = false;
-        if (openAPIFile) openAPIFile.value = '';
-        if (openAPITextarea) openAPITextarea.value = '';
-        if (openAPICluster) openAPICluster.value = '';
-        if (openAPIVersion) openAPIVersion.value = '';
-        if (openAPIStatus) openAPIStatus.textContent = '';
+        if (openAPIFile) {openAPIFile.value = "";}
+        if (openAPITextarea) {openAPITextarea.value = "";}
+        if (openAPICluster) {openAPICluster.value = "";}
+        if (openAPIVersion) {openAPIVersion.value = "";}
+        if (openAPIStatus) {openAPIStatus.textContent = "";}
         lastOpenAPIFileName = null;
       });
     });
   } catch (e) {
-    showToast('Unexpected error: ' + (e && e.message), { background: '#b91c1c' });
+    showToast("Unexpected error: " + (e && e.message), { background: "#b91c1c" });
     openAPILoadBtn.disabled = false;
   }
-});
+});}
 
 if (openAPIPreviewBtn) {
   openAPIPreviewBtn.onclick = async () => {
@@ -501,23 +501,23 @@ if (openAPIPreviewBtn) {
       try {
         schemaText = await openAPIFile.files[0].text();
       } catch (e) {
-        if (openAPIStatus) openAPIStatus.textContent = "Failed to read file.";
+        if (openAPIStatus) {openAPIStatus.textContent = "Failed to read file.";}
         return;
       }
     } else if (openAPITextarea && openAPITextarea.value.trim()) {
       schemaText = openAPITextarea.value.trim();
     } else {
-      if (openAPIStatus) openAPIStatus.textContent = "No schema source provided.";
+      if (openAPIStatus) {openAPIStatus.textContent = "No schema source provided.";}
       return;
     }
     let parsed;
     try {
       parsed = await parseSchemaText(schemaText);
     } catch (e) {
-      if (openAPIStatus) openAPIStatus.textContent = "Invalid OpenAPI JSON/YAML.";
+      if (openAPIStatus) {openAPIStatus.textContent = "Invalid OpenAPI JSON/YAML.";}
       return;
     }
-    if (openAPIStatus) openAPIStatus.textContent = "Schema parsed successfully. (Preview only)";
+    if (openAPIStatus) {openAPIStatus.textContent = "Schema parsed successfully. (Preview only)";}
     // Optionally, show a summary or structure here
   };
 }
@@ -606,7 +606,7 @@ function showToast(msg, opts = {}) {
 }
 function updateRuleCounter() {
   const el = document.getElementById("ruleCounterText");
-  if (!el) return;
+  if (!el) {return;}
 
   const total = rules.length;
   const enabled = rules.filter(r => r.enabled !== false).length;
@@ -901,9 +901,9 @@ if (importRulesBtn && importPanelModal) {
 if (cancelImportBtn && importPanelModal) {
   cancelImportBtn.onclick = () => {
     importPanelModal.style.display = "none";
-    if (importFile) importFile.value = "";
-    if (importTextarea) importTextarea.value = "";
-    if (importUrlInput) importUrlInput.value = "";
+    if (importFile) {importFile.value = "";}
+    if (importTextarea) {importTextarea.value = "";}
+    if (importUrlInput) {importUrlInput.value = "";}
   };
 }
 
@@ -937,7 +937,7 @@ if (doImportBtn) {
       // 3. Try URL input
       try {
         const resp = await fetch(importUrlInput.value.trim());
-        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        if (!resp.ok) {throw new Error("HTTP " + resp.status);}
         jsonText = await resp.text();
       } catch (e) {
         showToast("Failed to fetch URL", { background: "#b91c1c" });
@@ -965,9 +965,9 @@ if (doImportBtn) {
     const importedCount = applyNormalizedRules(rulesArr);
     if (importedCount > 0 && importPanelModal) {
       importPanelModal.style.display = "none";
-      if (importFile) importFile.value = "";
-      if (importTextarea) importTextarea.value = "";
-      if (importUrlInput) importUrlInput.value = "";
+      if (importFile) {importFile.value = "";}
+      if (importTextarea) {importTextarea.value = "";}
+      if (importUrlInput) {importUrlInput.value = "";}
     }
   };
 }
