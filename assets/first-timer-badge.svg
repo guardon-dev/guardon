@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40" fill="none">
+  <defs>
+    <linearGradient id="guardon-gradient" x1="0" y1="0" x2="160" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="40" rx="20" fill="url(#guardon-gradient)"/>
+  <g>
+    <circle cx="28" cy="20" r="12" fill="#fff"/>
+    <path d="M28 12c2.5 0 4.5 2 4.5 4.5S30.5 21 28 21s-4.5-2-4.5-4.5S25.5 12 28 12z" fill="#0ea5e9"/>
+    <path d="M28 28c-4.5 0-8-2.5-8-5.5 0-1.5 2.5-2.5 8-2.5s8 1 8 2.5c0 3-3.5 5.5-8 5.5z" fill="#059669"/>
+    <text x="80" y="20" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">Guardon</text>
+    <text x="80" y="34" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">Contributor</text>
+  </g>
+  <g>
+    <rect x="140" y="10" width="12" height="12" rx="3" fill="#fff"/>
+    <path d="M143 16l3 3 5-5" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

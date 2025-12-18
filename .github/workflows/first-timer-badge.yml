@@ -1,0 +1,42 @@
+name: Assign First Timer Badge
+
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  assign-badge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if PR is merged and user is a first-time contributor
+        id: contributor_check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (!context.payload.pull_request.merged) {
+              core.setOutput('is_first_contributor', false);
+              return;
+            }
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              per_page: 100,
+              creator: context.payload.pull_request.user.login
+            });
+            // Count merged PRs
+            const mergedCount = pulls.filter(pr => pr.merged_at).length;
+            core.setOutput('is_first_contributor', mergedCount === 1);
+
+      - name: Assign badge label if first PR merged
+        if: steps.contributor_check.outputs.is_first_contributor == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['contributor']
+            });
