@@ -7,6 +7,16 @@ const importFile = document.getElementById("importFile");
 const doImportBtn = document.getElementById("doImport");
 const importPanelModal = document.getElementById("importPanelModal");
 
+let ruleSearchQuery = ""; // Search query for filtering rules 
+
+const ruleSearchInput = document.getElementById("ruleSearch");
+if (ruleSearchInput){
+  ruleSearchInput.addEventListener("input", e => {
+    ruleSearchQuery = e.target.value.toLowerCase().trim();
+    renderTable();
+  });
+}
+
 if (fetchUrlBtn) {
   fetchUrlBtn.addEventListener("click", async () => {
     const url = (importUrlInput && importUrlInput.value || "").trim();
@@ -622,7 +632,26 @@ function updateRuleCounter() {
 function renderTable() {
   if (!tableBody) {return;}
   tableBody.innerHTML = "";
-  rules.forEach((r, idx) => {
+
+  //Here goes the search filter logic
+  const filteredRules = rules.filter(r => {
+    if (!ruleSearchQuery) {return true;};
+    return [r.id, r.description, r.match]
+      .some(v => String(v || "").toLowerCase().includes(ruleSearchQuery));
+  });
+  //if no matching rules found
+  if (filteredRules.length === 0 && ruleSearchQuery) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 6;
+    td.textContent = "No matching rules";
+    td.style.textAlign = "center";
+    tr.appendChild(td);
+    tableBody.appendChild(tr);
+    updateRuleCounter();
+    return;
+  }
+  filteredRules.forEach((r, idx) => {
     const tr = document.createElement("tr");
     const tdId = document.createElement("td"); tdId.textContent = r.id || "";
     const tdEnabled = document.createElement("td");

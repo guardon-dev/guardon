@@ -223,6 +223,22 @@
       outline: 2px solid #4285f4;
       outline-offset: 2px;
     }
+    #ruleSearch {
+    width: 340px;
+    padding: 7px 12px;
+    margin-left: 12px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    font-size: 15px;
+    background: #f6f8fa;
+  }
+
+  #ruleSearch:focus {
+    border: 1.5px solid #2563eb;
+    outline: none;
+    background: #e0e7ef;
+  }
+
 
   </style>
 </head>
@@ -236,6 +252,8 @@
     <span id="ruleCounter" class="rule-counter">
         <span id="ruleCounterText">No rules configured</span>
     </span>
+    <input id="ruleSearch" type="text" placeholder="Search by rule ID, description, or match…" />
+
 
   </div>
   
