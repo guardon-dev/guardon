@@ -698,20 +698,7 @@ if (exportRulesBtn) {
 //     showToast("Failed to render Kyverno preview", { background: "#b91c1c" });
 //   }
 // }
-function updateRuleCounter() {
-  const el = document.getElementById("ruleCounterText");
-  if (!el) {return;}
 
-  const total = rules.length;
-  const enabled = rules.filter(r => r.enabled !== false).length;
-  const disabled = total - enabled;
-
-  if (total === 0) {
-    el.textContent = "No rules configured";
-  } else {
-    el.textContent = `Total: ${total} · Enabled: ${enabled} · Disabled: ${disabled}`;
-  }
-}
 
 import { showToast, saveRawKyverno, applyNormalizedRules } from "./utils.js";
 // ...existing code...
@@ -723,6 +710,9 @@ function hideKyvernoPreview() {
 
 // Commented out unused function to resolve no-unused-vars
 // function escapeHtml(s) { return kpEscapeHtml(s); }
+
+
+import { updateRuleCounter, showDeleteConfirmation, hideDeleteConfirmation } from "./rules.js";
 
 window.editRule = function (idx) {
   editingIndex = idx;
@@ -751,88 +741,7 @@ window.deleteRule = function (idx) {
   showDeleteConfirmation(idx);
 };
 
-// Enhanced delete confirmation dialog
-function showDeleteConfirmation(idx) {
-  const rule = rules[idx];
-  if (!rule) {return;}
 
-  const deleteModal = document.getElementById("deleteModal");
-  const deleteRuleId = document.getElementById("deleteRuleId");
-  const deleteRuleDesc = document.getElementById("deleteRuleDesc");
-  const confirmDeleteBtn = document.getElementById("confirmDelete");
-  const cancelDeleteBtn = document.getElementById("cancelDelete");
-
-  // Populate modal with rule details
-  if (deleteRuleId) {deleteRuleId.textContent = rule.id || "Unnamed rule";}
-  if (deleteRuleDesc) {deleteRuleDesc.textContent = rule.description || "No description";}
-
-  // Show modal
-  if (deleteModal) {
-    deleteModal.style.display = "flex";
-    
-    // Focus management for accessibility
-    if (cancelDeleteBtn) {cancelDeleteBtn.focus();}
-  }
-
-  // Handle confirmation
-  const handleConfirm = () => {
-    rules.splice(idx, 1);
-    saveRules();
-    renderTable();
-    hideDeleteConfirmation();
-    showToast(`Rule "${rule.id}" deleted successfully`, { background: "#059669" });
-  };
-
-  // Handle cancellation
-  const handleCancel = () => {
-    hideDeleteConfirmation();
-  };
-
-  // Handle keyboard navigation
-  const handleKeyDown = (e) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      handleCancel();
-    } else if (e.key === "Enter" && e.target === confirmDeleteBtn) {
-      e.preventDefault();
-      handleConfirm();
-    }
-  };
-
-  // Clean up previous event listeners
-  if (confirmDeleteBtn) {
-    confirmDeleteBtn.replaceWith(confirmDeleteBtn.cloneNode(true));
-    const newConfirmBtn = document.getElementById("confirmDelete");
-    newConfirmBtn.addEventListener("click", handleConfirm);
-  }
-
-  if (cancelDeleteBtn) {
-    cancelDeleteBtn.replaceWith(cancelDeleteBtn.cloneNode(true));
-    const newCancelBtn = document.getElementById("cancelDelete");
-    newCancelBtn.addEventListener("click", handleCancel);
-  }
-
-  // Add keyboard event listener
-  document.addEventListener("keydown", handleKeyDown);
-
-  // Store cleanup function for later use
-  window._deleteConfirmationCleanup = () => {
-    document.removeEventListener("keydown", handleKeyDown);
-  };
-}
-
-function hideDeleteConfirmation() {
-  const deleteModal = document.getElementById("deleteModal");
-  if (deleteModal) {
-    deleteModal.style.display = "none";
-  }
-  
-  // Clean up event listeners
-  if (window._deleteConfirmationCleanup) {
-    window._deleteConfirmationCleanup();
-    delete window._deleteConfirmationCleanup;
-  }
-}
 
 const addRuleBtn = document.getElementById("addRule");
 if (addRuleBtn) {addRuleBtn.onclick = () => {
