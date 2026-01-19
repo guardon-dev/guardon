@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Guardon — Kubernetes Guardon checks",
-  "version": "0.4",
+  "version": "0.5",
   "description": "Guardon validates Kubernetes YAML files in GitHub/GitLab against configurable Guardon checks.",
   "permissions": ["storage"],
   "host_permissions": [
