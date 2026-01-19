@@ -178,11 +178,10 @@ function _typeMatches(expected, val) {
   return true;
 }
 
-
-
-function validateAgainstOpenAPIV3Schema(schema, obj, path = "") {
+function validateAgainstOpenAPIV3Schema(schema, obj, path = "", opts) {
   const errors = [];
   if (!schema || typeof schema !== "object") {return errors;}
+  const resolveRef = opts && typeof opts.resolveRef === "function" ? opts.resolveRef : (x) => x;
   const t = schema.type || (schema.properties ? "object" : null);
 
   if (t === "object" && schema.properties) {
@@ -194,8 +193,9 @@ function validateAgainstOpenAPIV3Schema(schema, obj, path = "") {
         // [schema-validator] missing required field
       }
     }
-    // For each property, validate type and recurse
-    for (const [k, propSchema] of Object.entries(schema.properties)) {
+    // For each property, resolve any local $ref, validate type and recurse
+    for (const [k, rawPropSchema] of Object.entries(schema.properties)) {
+      const propSchema = resolveRef(rawPropSchema);
       const childPath = path ? path + "." + k : k;
       const val = obj ? obj[k] : undefined;
       const expected = propSchema && propSchema.type ? propSchema.type : null;
@@ -213,29 +213,30 @@ function validateAgainstOpenAPIV3Schema(schema, obj, path = "") {
             // [schema-validator] minItems failed
           }
           if (Array.isArray(val) && propSchema.items) {
+            const itemSchemaResolved = resolveRef(propSchema.items);
             val.forEach((el, idx) => {
               // Validate type
-              if (propSchema.items.type && !_typeMatches(propSchema.items.type, el)) {
-                errors.push({ path: `${childPath}[${idx}]`, msg: `type mismatch: expected ${propSchema.items.type}` });
+              if (itemSchemaResolved.type && !_typeMatches(itemSchemaResolved.type, el)) {
+                errors.push({ path: `${childPath}[${idx}]`, msg: `type mismatch: expected ${itemSchemaResolved.type}` });
                 // [schema-validator] array item type mismatch
               }
               // Validate required fields in array items
-              if (propSchema.items.properties || propSchema.items.required) {
+              if (itemSchemaResolved.properties || itemSchemaResolved.required) {
                 // If el is undefined/null, report all required fields as missing
                 if (el === undefined || el === null) {
-                  const reqArr = Array.isArray(propSchema.items.required) ? propSchema.items.required : [];
+                  const reqArr = Array.isArray(itemSchemaResolved.required) ? itemSchemaResolved.required : [];
                   for (const r of reqArr) {
                     errors.push({ path: `${childPath}[${idx}].${r}`, msg: `Missing required field: ${childPath}[${idx}].${r}` });
                     // [schema-validator] missing required field in array item
                   }
                 } else {
-                  errors.push(...validateAgainstOpenAPIV3Schema(propSchema.items, el, `${childPath}[${idx}]`));
+                  errors.push(...validateAgainstOpenAPIV3Schema(itemSchemaResolved, el, `${childPath}[${idx}]`, opts));
                 }
               }
             });
             // If array is present but empty, and items have required fields, report missing for index 0
-            if (val.length === 0 && Array.isArray(propSchema.items.required)) {
-              for (const r of propSchema.items.required) {
+            if (val.length === 0 && Array.isArray(itemSchemaResolved.required)) {
+              for (const r of itemSchemaResolved.required) {
                 errors.push({ path: `${childPath}[0].${r}`, msg: `Missing required field: ${childPath}[0].${r} (array empty)` });
                 // [schema-validator] array empty, missing required field
               }
@@ -255,7 +256,7 @@ function validateAgainstOpenAPIV3Schema(schema, obj, path = "") {
         }
         // nested objects: recurse if nested schema provided
         if (expected === "object" && propSchema && propSchema.properties && typeof val === "object") {
-          errors.push(...validateAgainstOpenAPIV3Schema(propSchema, val, childPath));
+          errors.push(...validateAgainstOpenAPIV3Schema(propSchema, val, childPath, opts));
         }
       } else {
         // If property is required and missing, already reported above
@@ -301,7 +302,18 @@ async function validateResourceAgainstClusterSchemas(resourceInput, clusterSchem
     try {
       const comps = spec && (spec.components || spec.definitions);
       if (!comps) {continue;}
-      const schemas = comps.schemas || comps.definitions || {};
+
+      // For OpenAPI v3, schemas usually live under components.schemas.
+      // For Kubernetes swagger (OpenAPI v2), object models are often
+      // directly under `definitions`. Handle both:
+      let schemas = {};
+      if (comps.schemas || comps.definitions) {
+        schemas = comps.schemas || comps.definitions;
+      } else {
+        // If comps *is* the map (as with swagger `definitions`), use it
+        // directly as the schema dictionary.
+        schemas = comps;
+      }
       const kind = resource.kind;
       if (kind && schemas) {
         // Helper: resolve local $ref to actual schema object when possible
@@ -327,7 +339,7 @@ async function validateResourceAgainstClusterSchemas(resourceInput, clusterSchem
         // Direct match by schema key (rare for k8s OpenAPI but keep for completeness)
         if (schemas[kind]) {
           const target = resolveRef(schemas[kind]);
-          const errs = validateAgainstOpenAPIV3Schema(target, resource);
+          const errs = validateAgainstOpenAPIV3Schema(target, resource, "", { resolveRef });
           return { ok: errs.length === 0, errors: errs, matchedBy: "openapi" };
         }
 
@@ -341,18 +353,18 @@ async function validateResourceAgainstClusterSchemas(resourceInput, clusterSchem
 
             // 1) schema name equals kind or endsWith '.Kind'
             if (String(name) === String(kind) || String(name).endsWith("." + String(kind))) {
-              const errs = validateAgainstOpenAPIV3Schema(sch, resource);
+              const errs = validateAgainstOpenAPIV3Schema(sch, resource, "", { resolveRef });
               return { ok: errs.length === 0, errors: errs, matchedBy: "openapi" };
             }
             // 1b) schema name ends with apiVersion.Kind (for k8s OpenAPI)
             if (String(name).endsWith("." + String(resource.apiVersion) + "." + String(kind))) {
-              const errs = validateAgainstOpenAPIV3Schema(sch, resource);
+              const errs = validateAgainstOpenAPIV3Schema(sch, resource, "", { resolveRef });
               return { ok: errs.length === 0, errors: errs, matchedBy: "openapi" };
             }
 
             // 2) schema title matches kind
             if (sch && sch.title && String(sch.title) === String(kind)) {
-              const errs = validateAgainstOpenAPIV3Schema(sch, resource);
+              const errs = validateAgainstOpenAPIV3Schema(sch, resource, "", { resolveRef });
               return { ok: errs.length === 0, errors: errs, matchedBy: "openapi" };
             }
 
@@ -367,7 +379,7 @@ async function validateResourceAgainstClusterSchemas(resourceInput, clusterSchem
                 const gver = String(gvk.version || "");
                 if (!gkind) {continue;}
                 if (gkind === String(kind) && ( !ggroup || ggroup === String(resGroup) ) && ( !gver || gver === String(resVersion) )) {
-                  const errs = validateAgainstOpenAPIV3Schema(sch, resource);
+                  const errs = validateAgainstOpenAPIV3Schema(sch, resource, "", { resolveRef });
                   return { ok: errs.length === 0, errors: errs, matchedBy: "openapi" };
                 }
               }
@@ -399,6 +411,14 @@ async function validateYamlAgainstClusterSchemas(yamlText, clusterSchema) {
     const doc = docs[i];
     // Skip empty/null docs
     if (doc === null || doc === undefined) {continue;}
+
+    // Only attempt schema validation for docs that look like Kubernetes
+    // resources (have both apiVersion and kind). This avoids schema
+    // noise on arbitrary YAML files such as values files or configs.
+    if (!doc || typeof doc !== "object" || !doc.apiVersion || !doc.kind) {
+      continue;
+    }
+
     const res = await validateResourceAgainstClusterSchemas(doc, clusterSchema || {});
     if (res && res.ok) {
       // No issues for this doc
@@ -416,9 +436,6 @@ async function validateYamlAgainstClusterSchemas(yamlText, clusterSchema) {
           results.push({ ruleId, severity: "error", message: msg, path, docIndex: i });
         }
       }
-    } else if (res && res.matchedBy === "none") {
-      // Always report as warning, not error, if no matching schema found
-      results.push({ ruleId: "schema-no-match", severity: "warning", message: "No matching CRD/OpenAPI schema found for this resource", path: "", docIndex: i });
     }
   }
 
