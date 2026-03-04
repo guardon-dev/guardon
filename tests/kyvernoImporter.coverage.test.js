@@ -4,7 +4,9 @@ describe("kyvernoImporter uncovered lines", () => {
   test("escapeRegExp escapes special characters", () => {
     // Line 132
     const fn = require("../src/utils/kyvernoImporter.js");
-    expect(fn.escapeRegExp("a.b*c?^$|[](){}\\")).toBe("a\\.b\\*c\\?\\^\\$\\|\\[\\]\\(\\)\\{\\}\\\\");
+    expect(fn.escapeRegExp("a.b*c?^$|[](){}\\")).toBe(
+      "a\\.b\\*c\\?\\^\\$\\|\\[\\]\\(\\)\\{\\}\\\\"
+    );
   });
 
   test("normalizeKinds handles arrays and falsy", () => {
@@ -19,8 +21,24 @@ describe("kyvernoImporter uncovered lines", () => {
     // Lines 158-164, 184
     const docs = [
       { kind: "ConfigMap" },
-      { apiVersion: "kyverno.io/v1", kind: "Policy", metadata: { name: "p" }, spec: { rules: [{ match: { resources: { kinds: ["Pod"] } }, validate: { pattern: { foo: "bar" } } }] } },
-      { apiVersion: "kyverno.io/v1", kind: "Policy", metadata: { name: "p2" }, spec: { rules: [{ match: { resources: { kinds: ["Pod"] } }, validate: { message: "skip" } }] } }
+      {
+        apiVersion: "kyverno.io/v1",
+        kind: "Policy",
+        metadata: { name: "p" },
+        spec: {
+          rules: [
+            { match: { resources: { kinds: ["Pod"] } }, validate: { pattern: { foo: "bar" } } },
+          ],
+        },
+      },
+      {
+        apiVersion: "kyverno.io/v1",
+        kind: "Policy",
+        metadata: { name: "p2" },
+        spec: {
+          rules: [{ match: { resources: { kinds: ["Pod"] } }, validate: { message: "skip" } }],
+        },
+      },
     ];
     const out = convertDocs(docs);
     expect(Array.isArray(out)).toBe(true);
@@ -30,7 +48,16 @@ describe("kyvernoImporter uncovered lines", () => {
   test("convertDocs handles pattern conversion and id creation", () => {
     // Lines 219-222
     const docs = [
-      { apiVersion: "kyverno.io/v1", kind: "Policy", metadata: { name: "p" }, spec: { rules: [{ match: { resources: { kinds: ["Pod"] } }, validate: { pattern: { foo: "bar" } } }] } }
+      {
+        apiVersion: "kyverno.io/v1",
+        kind: "Policy",
+        metadata: { name: "p" },
+        spec: {
+          rules: [
+            { match: { resources: { kinds: ["Pod"] } }, validate: { pattern: { foo: "bar" } } },
+          ],
+        },
+      },
     ];
     const out = convertDocs(docs);
     expect(out[0].id).toBe("p:rule-0:0");

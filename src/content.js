@@ -6,20 +6,24 @@
 // helper to detect YAML/selection/text on the page (sanitizes common injected elements)
 function getPageYamlText() {
   // Prefer user selection if present
-  const selection = (window.getSelection && window.getSelection().toString && window.getSelection().toString()) || "";
-  if (selection && /apiVersion:|kind:|metadata:/i.test(selection)) {return selection;}
+  const selection =
+    (window.getSelection && window.getSelection().toString && window.getSelection().toString()) ||
+    "";
+  if (selection && /apiVersion:|kind:|metadata:/i.test(selection)) {
+    return selection;
+  }
 
   // GitHub code view: extract all lines from .blob-code-inner and .js-file-line
   let codeLines = [];
   const blobLines = document.querySelectorAll(".blob-code-inner, .js-file-line");
   if (blobLines && blobLines.length) {
-    codeLines = Array.from(blobLines).map(b => b.textContent || "");
+    codeLines = Array.from(blobLines).map((b) => b.textContent || "");
   }
 
   let yamlText = "";
   if (codeLines.length) {
     // Only extract YAML block from code lines
-    let start = codeLines.findIndex(l => /apiVersion:/.test(l));
+    let start = codeLines.findIndex((l) => /apiVersion:/.test(l));
     let end = codeLines.length - 1;
     // Find end: next apiVersion: or first blank line after start
     for (let i = start + 1; i < codeLines.length; i++) {
@@ -44,7 +48,7 @@ function getPageYamlText() {
       "code",
       ".markdown-body pre",
       ".file .line",
-      ".blob-code"
+      ".blob-code",
     ];
     let blocks = [];
     for (const sel of selectors) {
@@ -55,8 +59,8 @@ function getPageYamlText() {
       }
     }
     if (blocks.length) {
-      let lines = Array.from(blocks).map(b => b.textContent || "");
-      let start = lines.findIndex(l => /apiVersion:/.test(l));
+      let lines = Array.from(blocks).map((b) => b.textContent || "");
+      let start = lines.findIndex((l) => /apiVersion:/.test(l));
       let end = lines.length - 1;
       for (let i = start + 1; i < lines.length; i++) {
         if (/^apiVersion:/.test(lines[i]) || lines[i].trim() === "") {
@@ -76,7 +80,7 @@ function getPageYamlText() {
       const urlHint = /\.ya?ml($|\?|#)|\/raw\/|\/blob\//i.test(location.href);
       if (urlHint && document.body) {
         let lines = (document.body.innerText || "").split("\n");
-        let start = lines.findIndex(l => /apiVersion:/.test(l));
+        let start = lines.findIndex((l) => /apiVersion:/.test(l));
         let end = lines.length - 1;
         for (let i = start + 1; i < lines.length; i++) {
           if (/^apiVersion:/.test(lines[i]) || lines[i].trim() === "") {
@@ -95,13 +99,17 @@ function getPageYamlText() {
     }
   }
 
-  if (!yamlText || !/apiVersion:|kind:|metadata:/i.test(yamlText)) {return null;}
+  if (!yamlText || !/apiVersion:|kind:|metadata:/i.test(yamlText)) {
+    return null;
+  }
   return yamlText;
 }
 
 // Message handler: respond to GET_YAML and GET_SELECTION only. Do not modify the page.
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (!msg || !msg.type) {return;}
+  if (!msg || !msg.type) {
+    return;
+  }
   if (msg.type === "GET_YAML") {
     try {
       const yaml = getPageYamlText();
@@ -113,7 +121,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg.type === "GET_SELECTION") {
     try {
-      const sel = (window.getSelection && window.getSelection().toString && window.getSelection().toString()) || "";
+      const sel =
+        (window.getSelection &&
+          window.getSelection().toString &&
+          window.getSelection().toString()) ||
+        "";
       sendResponse({ selection: sel });
     } catch {
       sendResponse({ selection: "" });

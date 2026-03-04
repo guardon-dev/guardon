@@ -26,16 +26,14 @@ describe("kyvernoImporter", () => {
               validate: {
                 pattern: {
                   spec: {
-                    containers: [
-                      { resources: { limits: { cpu: "250m" } } }
-                    ]
-                  }
-                }
-              }
-            }
-          ]
-        }
-      }
+                    containers: [{ resources: { limits: { cpu: "250m" } } }],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
     ];
 
     const out = imp.convertDocs(docs);
@@ -54,9 +52,9 @@ describe("kyvernoImporter", () => {
     jest.resetModules();
     await import("../src/utils/kyvernoImporter.js");
     const imp = global.window.kyvernoImporter;
-    const obj = { spec: { containers: [ { name: "a", value: "x" } ] } };
+    const obj = { spec: { containers: [{ name: "a", value: "x" }] } };
     const paths = imp._collectPaths(obj, "");
     expect(Array.isArray(paths)).toBe(true);
-    expect(paths.some(p => p.includes("[*]"))).toBe(true);
+    expect(paths.some((p) => p.includes("[*]"))).toBe(true);
   });
 });

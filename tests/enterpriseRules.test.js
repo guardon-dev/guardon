@@ -12,7 +12,9 @@ describe("Enterprise Rules Validation", () => {
 
   test("should load all 27 enterprise rules correctly", () => {
     expect(enterpriseRules).toHaveLength(27);
-    expect(enterpriseRules.every(rule => rule.id && rule.description && rule.severity)).toBe(true);
+    expect(enterpriseRules.every((rule) => rule.id && rule.description && rule.severity)).toBe(
+      true
+    );
   });
 
   test("should detect security violations in insecure deployment", async () => {
@@ -32,12 +34,12 @@ spec:
     `;
 
     const results = await validateYaml(yamlContent, enterpriseRules);
-    
+
     // Verify multiple violations are detected
     expect(results.length).toBeGreaterThan(5);
-    
+
     // Verify specific critical violations
-    const violations = results.map(r => r.ruleId);
+    const violations = results.map((r) => r.ruleId);
     expect(violations).toContain("no-latest-tag");
     expect(violations).toContain("require-liveness-probe");
     expect(violations).toContain("require-readiness-probe");
@@ -59,7 +61,7 @@ spec:
     `;
 
     const results = await validateYaml(yamlContent, enterpriseRules);
-    const latestViolations = results.filter(r => r.ruleId === "no-latest-tag");
+    const latestViolations = results.filter((r) => r.ruleId === "no-latest-tag");
     expect(latestViolations.length).toBeGreaterThan(0);
     expect(latestViolations[0].message).toContain("debugging impossible");
   });
@@ -79,8 +81,8 @@ spec:
     `;
 
     const results = await validateYaml(yamlContent, enterpriseRules);
-    const resourceViolations = results.filter(r => 
-      r.ruleId === "require-cpu-requests" || r.ruleId === "require-memory-requests"
+    const resourceViolations = results.filter(
+      (r) => r.ruleId === "require-cpu-requests" || r.ruleId === "require-memory-requests"
     );
     expect(resourceViolations.length).toBeGreaterThan(0);
   });
@@ -104,11 +106,11 @@ spec:
     `;
 
     const results = await validateYaml(yamlContent, enterpriseRules);
-    const probeViolations = results.filter(r => 
-      r.ruleId === "require-liveness-probe" || r.ruleId === "require-readiness-probe"
+    const probeViolations = results.filter(
+      (r) => r.ruleId === "require-liveness-probe" || r.ruleId === "require-readiness-probe"
     );
     expect(probeViolations.length).toBeGreaterThan(0);
-    expect(probeViolations.some(v => v.message.includes("#1 cause"))).toBe(true);
+    expect(probeViolations.some((v) => v.message.includes("#1 cause"))).toBe(true);
   });
 
   test("should detect LoadBalancer service cost warning", async () => {
@@ -124,7 +126,7 @@ spec:
     `;
 
     const results = await validateYaml(yamlContent, enterpriseRules);
-    const lbViolations = results.filter(r => r.ruleId === "limit-loadbalancer-services");
+    const lbViolations = results.filter((r) => r.ruleId === "limit-loadbalancer-services");
     expect(lbViolations.length).toBeGreaterThan(0);
     expect(lbViolations[0].message).toContain("$15-30/month");
   });
@@ -149,25 +151,25 @@ spec:
     `;
 
     const results = await validateYaml(yamlContent, enterpriseRules);
-    const wildcardViolations = results.filter(r => r.ruleId === "no-wildcard-ingress");
+    const wildcardViolations = results.filter((r) => r.ruleId === "no-wildcard-ingress");
     expect(wildcardViolations.length).toBeGreaterThan(0);
   });
 
   test("should validate rule structure and required fields", () => {
-    enterpriseRules.forEach(rule => {
+    enterpriseRules.forEach((rule) => {
       expect(rule.id).toBeDefined();
       expect(rule.description).toBeDefined();
       expect(rule.severity).toMatch(/^(info|warning|error)$/);
       expect(rule.message).toBeDefined();
       expect(rule.required).toBeDefined();
       expect(typeof rule.required).toBe("boolean");
-      
+
       if (rule.kind) {
         expect(typeof rule.kind).toBe("string");
         // Verify it's comma-separated format
         expect(rule.kind).toMatch(/^[A-Za-z]+(,[A-Za-z]+)*$/);
       }
-      
+
       if (rule.fix) {
         expect(rule.fix.action).toMatch(/^(insert|replace|remove)$/);
       }

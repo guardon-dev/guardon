@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 // This script is intended for Node.js, where 'process' is defined globally.
 
 const fs = require("fs");

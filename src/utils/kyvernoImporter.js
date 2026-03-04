@@ -5,7 +5,9 @@
 
 (function () {
   function isKyvernoPolicy(doc) {
-    if (!doc || typeof doc !== "object") {return false;}
+    if (!doc || typeof doc !== "object") {
+      return false;
+    }
     const api = String(doc.apiVersion || "").toLowerCase();
     const kind = String(doc.kind || "").toLowerCase();
     return api.includes("kyverno.io") && (kind === "policy" || kind === "clusterpolicy");
@@ -62,8 +64,12 @@
   // sibling condition so the rules engine can check the sibling `name`.
   function convertPatternToRules(obj, base = "") {
     const out = [];
-    if (obj === null || obj === undefined) {return out;}
-    if (typeof obj !== "object") {return out;}
+    if (obj === null || obj === undefined) {
+      return out;
+    }
+    if (typeof obj !== "object") {
+      return out;
+    }
 
     if (Array.isArray(obj)) {
       const arrBase = base ? `${base}[*]` : "[*]";
@@ -75,7 +81,7 @@
     }
 
     // If this object looks like an env entry with name & value keys, handle it.
-    const keys = Object.keys(obj).map(k => String(k).replace(/[^a-zA-Z0-9_\-]/g, ""));
+    const keys = Object.keys(obj).map((k) => String(k).replace(/[^a-zA-Z0-9_\-]/g, ""));
     if (keys.includes("name") && keys.includes("value")) {
       const nameVal = obj["name"];
       const valueVal = obj["value"];
@@ -94,7 +100,11 @@
             siblingProperty: "name",
             siblingValue: nameVal,
             // Provide a suggestion to replace the forbidden value with the positive value
-            fix: { action: "replace", value: forbidden, hint: `Replace env value for ${nameVal} to ${forbidden}` },
+            fix: {
+              action: "replace",
+              value: forbidden,
+              hint: `Replace env value for ${nameVal} to ${forbidden}`,
+            },
           });
         } else {
           // Positive equality — interpret as a pattern that flags when the
@@ -121,7 +131,9 @@
     // Recurse into object keys
     for (const k of Object.keys(obj)) {
       const safeKey = String(k).replace(/[^a-zA-Z0-9_\-]/g, "");
-      if (!safeKey) {continue;}
+      if (!safeKey) {
+        continue;
+      }
       const nextBase = base ? `${base}.${safeKey}` : safeKey;
       out.push(...convertPatternToRules(obj[k], nextBase));
     }
@@ -133,17 +145,25 @@
   }
 
   function normalizeKinds(kinds) {
-    if (!kinds) {return "";}
-    if (Array.isArray(kinds)) {return kinds.join(",");}
+    if (!kinds) {
+      return "";
+    }
+    if (Array.isArray(kinds)) {
+      return kinds.join(",");
+    }
     return String(kinds);
   }
 
   function convertDocs(docs) {
     const out = [];
-    if (!docs || !Array.isArray(docs)) {return out;}
+    if (!docs || !Array.isArray(docs)) {
+      return out;
+    }
 
     for (const doc of docs) {
-      if (!isKyvernoPolicy(doc)) {continue;}
+      if (!isKyvernoPolicy(doc)) {
+        continue;
+      }
       const policyName = (doc.metadata && doc.metadata.name) || "kyverno-policy";
       const specRules = (doc.spec && Array.isArray(doc.spec.rules) && doc.spec.rules) || [];
       for (let ri = 0; ri < specRules.length; ri++) {
@@ -154,14 +174,23 @@
         // supports nested match clauses (any/all). Recursively search the
         // rule.match object for resources.kinds entries.
         function collectKinds(obj, out) {
-          if (!obj || typeof obj !== "object") {return;}
+          if (!obj || typeof obj !== "object") {
+            return;
+          }
           if (obj.resources && obj.resources.kinds) {
             const k = obj.resources.kinds;
-            if (Array.isArray(k)) {out.push(...k);}
-            else {out.push(k);}
+            if (Array.isArray(k)) {
+              out.push(...k);
+            } else {
+              out.push(k);
+            }
           }
           for (const key of Object.keys(obj)) {
-            try { collectKinds(obj[key], out); } catch (e) { /* ignore */ }
+            try {
+              collectKinds(obj[key], out);
+            } catch (e) {
+              /* ignore */
+            }
           }
         }
         const kindsArr = [];
@@ -191,7 +220,10 @@
           // produces '[*]' where arrays were detected.
           const match = p.replace(/\[\*\]/g, "[*]");
           const id = `${policyName}:${ruleName}:${pi}`;
-          const message = (validate && validate.message) || (r && r.message) || `${policyName}/${ruleName} - missing ${match}`;
+          const message =
+            (validate && validate.message) ||
+            (r && r.message) ||
+            `${policyName}/${ruleName} - missing ${match}`;
           out.push({
             id,
             description: `${policyName}/${ruleName}`,
@@ -202,26 +234,37 @@
             severity: "warning",
             message,
             // Provide a default fix suggestion for missing resources fields
-            fix: (match && match.toLowerCase().includes("resources")) ? {
-              action: "insert",
-              value: { limits: { cpu: "250m", memory: "256Mi" }, requests: { cpu: "100m", memory: "128Mi" } },
-              hint: "Add resource requests/limits for the container"
-            } : undefined,
+            fix:
+              match && match.toLowerCase().includes("resources")
+                ? {
+                    action: "insert",
+                    value: {
+                      limits: { cpu: "250m", memory: "256Mi" },
+                      requests: { cpu: "100m", memory: "128Mi" },
+                    },
+                    hint: "Add resource requests/limits for the container",
+                  }
+                : undefined,
           });
         }
-          // Also convert any pattern-based rules (e.g., env name/value checks)
-          if (patternObj) {
-            const conv = convertPatternToRules(patternObj, "spec");
-            // The convertPatternToRules returns matches rooted at the pattern
-            // object's path; in Kyverno the pattern often starts under 'spec',
-            // but to be conservative we graft using empty base when necessary.
-            for (const c of conv) {
-              const cid = `${policyName}:${ruleName}:pat:${pi}`;
-              // If the converted pattern appears to be an env negative check,
-              // convertPatternToRules may already include appropriate fields.
-              out.push(Object.assign({ id: cid, description: `${policyName}/${ruleName}`, kind: normalizeKinds(kinds) }, c));
-            }
+        // Also convert any pattern-based rules (e.g., env name/value checks)
+        if (patternObj) {
+          const conv = convertPatternToRules(patternObj, "spec");
+          // The convertPatternToRules returns matches rooted at the pattern
+          // object's path; in Kyverno the pattern often starts under 'spec',
+          // but to be conservative we graft using empty base when necessary.
+          for (const c of conv) {
+            const cid = `${policyName}:${ruleName}:pat:${pi}`;
+            // If the converted pattern appears to be an env negative check,
+            // convertPatternToRules may already include appropriate fields.
+            out.push(
+              Object.assign(
+                { id: cid, description: `${policyName}/${ruleName}`, kind: normalizeKinds(kinds) },
+                c
+              )
+            );
           }
+        }
       }
     }
 
@@ -234,7 +277,7 @@
       convertDocs,
       _collectPaths: collectPaths, // exported for testing/debugging
       escapeRegExp,
-      normalizeKinds
+      normalizeKinds,
     };
   }
 
@@ -244,7 +287,7 @@
       convertDocs,
       _collectPaths: collectPaths,
       escapeRegExp,
-      normalizeKinds
+      normalizeKinds,
     };
   }
 })();

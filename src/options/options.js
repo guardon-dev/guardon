@@ -9,14 +9,21 @@ if (opaImportBtn) {
 initOpaWasmTable();
 // Restore renderTable function
 function renderTable() {
-  if (!tableBody) {return;}
+  if (!tableBody) {
+    return;
+  }
   tableBody.innerHTML = "";
 
   // Here goes the search filter logic
-  const filteredRules = rules.filter(r => {
-    if (!ruleSearchQuery) {return true;}
-    return [r.id, r.description, r.match]
-      .some(v => String(v || "").toLowerCase().includes(ruleSearchQuery));
+  const filteredRules = rules.filter((r) => {
+    if (!ruleSearchQuery) {
+      return true;
+    }
+    return [r.id, r.description, r.match].some((v) =>
+      String(v || "")
+        .toLowerCase()
+        .includes(ruleSearchQuery)
+    );
   });
   // if no matching rules found
   if (filteredRules.length === 0 && ruleSearchQuery) {
@@ -27,35 +34,41 @@ function renderTable() {
     td.style.textAlign = "center";
     tr.appendChild(td);
     tableBody.appendChild(tr);
-      updateRuleCounter(rules);
+    updateRuleCounter(rules);
     return;
   }
   filteredRules.forEach((r, idx) => {
     const tr = document.createElement("tr");
-    const tdId = document.createElement("td"); tdId.textContent = r.id || "";
+    const tdId = document.createElement("td");
+    tdId.textContent = r.id || "";
     const tdEnabled = document.createElement("td");
     const enChk = document.createElement("input");
     enChk.type = "checkbox";
-    enChk.checked = (r.enabled === undefined) ? true : !!r.enabled;
+    enChk.checked = r.enabled === undefined ? true : !!r.enabled;
     enChk.addEventListener("change", () => {
       rules[idx].enabled = !!enChk.checked;
       saveRules();
       tr.style.opacity = enChk.checked ? "1" : "0.5";
-        updateRuleCounter(rules);
+      updateRuleCounter(rules);
     });
     tdEnabled.appendChild(enChk);
     tdEnabled.style.textAlign = "center";
-    const tdDesc = document.createElement("td"); tdDesc.textContent = r.description || "";
-    const tdKind = document.createElement("td"); tdKind.textContent = r.kind || "";
-    const tdSeverity = document.createElement("td"); tdSeverity.textContent = r.severity || "";
+    const tdDesc = document.createElement("td");
+    tdDesc.textContent = r.description || "";
+    const tdKind = document.createElement("td");
+    tdKind.textContent = r.kind || "";
+    const tdSeverity = document.createElement("td");
+    tdSeverity.textContent = r.severity || "";
     const tdActions = document.createElement("td");
     // Edit button
     const editBtn = document.createElement("button");
     editBtn.textContent = "✏️";
     editBtn.title = "Edit";
     editBtn.style.padding = "4px 8px";
-    editBtn.onclick = function() {
-      if (typeof window.editRule === "function") { window.editRule(idx); }
+    editBtn.onclick = function () {
+      if (typeof window.editRule === "function") {
+        window.editRule(idx);
+      }
     };
     tdActions.appendChild(editBtn);
 
@@ -64,8 +77,10 @@ function renderTable() {
     delBtn.textContent = "🗑";
     delBtn.title = "Delete";
     delBtn.style.padding = "4px 8px";
-    delBtn.onclick = function() {
-      if (typeof window.deleteRule === "function") { window.deleteRule(idx); }
+    delBtn.onclick = function () {
+      if (typeof window.deleteRule === "function") {
+        window.deleteRule(idx);
+      }
     };
     tdActions.appendChild(delBtn);
     tr.appendChild(tdId);
@@ -76,7 +91,7 @@ function renderTable() {
     tr.appendChild(tdActions);
     tableBody.appendChild(tr);
   });
-    updateRuleCounter(rules);
+  updateRuleCounter(rules);
 }
 // Add a button to clear all rules
 const clearRulesBtn = document.getElementById("clearRulesBtn");
@@ -98,11 +113,11 @@ const importFile = document.getElementById("importFile");
 const doImportBtn = document.getElementById("doImport");
 const importPanelModal = document.getElementById("importPanelModal");
 
-let ruleSearchQuery = ""; // Search query for filtering rules 
+let ruleSearchQuery = ""; // Search query for filtering rules
 
 const ruleSearchInput = document.getElementById("ruleSearch");
-if (ruleSearchInput){
-  ruleSearchInput.addEventListener("input", e => {
+if (ruleSearchInput) {
+  ruleSearchInput.addEventListener("input", (e) => {
     ruleSearchQuery = e.target.value.toLowerCase().trim();
     renderTable();
   });
@@ -110,7 +125,7 @@ if (ruleSearchInput){
 
 if (fetchUrlBtn) {
   fetchUrlBtn.addEventListener("click", async () => {
-    const url = (importUrlInput && importUrlInput.value || "").trim();
+    const url = ((importUrlInput && importUrlInput.value) || "").trim();
     if (!url) {
       showToast("Enter a URL to fetch", { background: "#b91c1c" });
       return;
@@ -133,7 +148,9 @@ if (fetchUrlBtn) {
           showToast("Failed to fetch URL: " + resp.status, { background: "#b91c1c" });
         }
       } catch (e) {
-        showToast("Failed to fetch URL: " + (e && e.message ? e.message : String(e)), { background: "#b91c1c" });
+        showToast("Failed to fetch URL: " + (e && e.message ? e.message : String(e)), {
+          background: "#b91c1c",
+        });
       }
     }
   });
@@ -167,35 +184,57 @@ const kyvernoCancelBtn = document.getElementById("kyvernoCancel");
 const kyvernoImportRawBtn = document.getElementById("kyvernoImportRaw");
 const kyvernoImportConvertedBtn = document.getElementById("kyvernoImportConverted");
 const kyvernoPreviewBody = document.getElementById("kyvernoPreviewBody");
-if (kyvernoCancelBtn) {kyvernoCancelBtn.addEventListener("click", () => { _kyvernoPreviewState = null; try { kpHide(); } catch {} });}
-if (kyvernoImportRawBtn) {kyvernoImportRawBtn.addEventListener("click", () => {
-  if (!_kyvernoPreviewState) {return;}
-  saveRawKyverno(_kyvernoPreviewState.rawText, _kyvernoPreviewState.meta);
-  _kyvernoPreviewState = null;
-  try { kpHide(); } catch {}
-});}
-if (kyvernoImportConvertedBtn) {kyvernoImportConvertedBtn.addEventListener("click", () => {
-  if (!_kyvernoPreviewState) {return;}
-  const boxes = kyvernoPreviewBody ? kyvernoPreviewBody.querySelectorAll("input.kyvernoRowCheckbox") : [];
-  const selected = [];
-  boxes.forEach(b => {
+if (kyvernoCancelBtn) {
+  kyvernoCancelBtn.addEventListener("click", () => {
+    _kyvernoPreviewState = null;
     try {
-      if (b.checked) {
-        const idx = Number(b.value);
-        const item = _kyvernoPreviewState.converted[idx];
-        if (item) {selected.push(item);}
-      }
+      kpHide();
     } catch {}
   });
-  if (!selected.length) {
-    showToast("No converted rules selected to import.", { background: "#b91c1c" });
-    return;
-  }
-  applyNormalizedRules(selected, rules, saveRules, renderTable);
-  _kyvernoPreviewState = null;
-  try { kpHide(); } catch {}
-});}
-
+}
+if (kyvernoImportRawBtn) {
+  kyvernoImportRawBtn.addEventListener("click", () => {
+    if (!_kyvernoPreviewState) {
+      return;
+    }
+    saveRawKyverno(_kyvernoPreviewState.rawText, _kyvernoPreviewState.meta);
+    _kyvernoPreviewState = null;
+    try {
+      kpHide();
+    } catch {}
+  });
+}
+if (kyvernoImportConvertedBtn) {
+  kyvernoImportConvertedBtn.addEventListener("click", () => {
+    if (!_kyvernoPreviewState) {
+      return;
+    }
+    const boxes = kyvernoPreviewBody
+      ? kyvernoPreviewBody.querySelectorAll("input.kyvernoRowCheckbox")
+      : [];
+    const selected = [];
+    boxes.forEach((b) => {
+      try {
+        if (b.checked) {
+          const idx = Number(b.value);
+          const item = _kyvernoPreviewState.converted[idx];
+          if (item) {
+            selected.push(item);
+          }
+        }
+      } catch {}
+    });
+    if (!selected.length) {
+      showToast("No converted rules selected to import.", { background: "#b91c1c" });
+      return;
+    }
+    applyNormalizedRules(selected, rules, saveRules, renderTable);
+    _kyvernoPreviewState = null;
+    try {
+      kpHide();
+    } catch {}
+  });
+}
 
 // ============ CRD SCHEMA HANDLERS ============
 const crdFileEl = document.getElementById("crdFile");
@@ -206,7 +245,9 @@ const crdClearBtn = document.getElementById("crdClear");
 const crdStatus = document.getElementById("crdStatus");
 
 function showCRDStatus(msg) {
-  if (crdStatus) {crdStatus.textContent = msg;}
+  if (crdStatus) {
+    crdStatus.textContent = msg;
+  }
 }
 
 function refreshCRDDisplay() {
@@ -215,12 +256,18 @@ function refreshCRDDisplay() {
       const cs = data && data.clusterSchema;
       const crdDisplay = document.getElementById("crdDisplay");
       if (!cs || !Array.isArray(cs.crds) || cs.crds.length === 0) {
-        if (crdDisplay) {crdDisplay.style.display = "none";}
+        if (crdDisplay) {
+          crdDisplay.style.display = "none";
+        }
         return;
       }
-      if (crdDisplay) {crdDisplay.style.display = "block";}
+      if (crdDisplay) {
+        crdDisplay.style.display = "block";
+      }
       const crdCount = document.getElementById("crdCount");
-      if (crdCount) {crdCount.textContent = cs.crds.length;}
+      if (crdCount) {
+        crdCount.textContent = cs.crds.length;
+      }
       const tableBody = document.getElementById("crdTableBody");
       if (tableBody) {
         tableBody.innerHTML = "";
@@ -245,9 +292,10 @@ function refreshCRDDisplay() {
           delBtn.textContent = "🗑";
           delBtn.title = "Delete";
           delBtn.style.padding = "4px 8px";
-          delBtn.onclick = function() {
+          delBtn.onclick = function () {
             chrome.storage.local.get("clusterSchema", (data) => {
-              const current = data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
+              const current =
+                data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
               current.crds.splice(idx, 1);
               chrome.storage.local.set({ clusterSchema: current }, () => {
                 showToast("CRD deleted", { background: "#b91c1c" });
@@ -261,82 +309,101 @@ function refreshCRDDisplay() {
         });
       }
     });
-  } catch (e) { console.error("refreshCRDDisplay error:", e); }
+  } catch (e) {
+    console.error("refreshCRDDisplay error:", e);
+  }
 }
 
-if (crdFileEl) {crdFileEl.addEventListener("change", (ev) => {
-  const f = ev.target.files && ev.target.files[0];
-  if (!f) {return;}
-  const reader = new FileReader();
-  reader.onload = () => {
-    if (crdTextarea) {crdTextarea.value = String(reader.result || "");}
-    showToast("Loaded CRD file", { background: "#0ea5e9" });
-  };
-  reader.onerror = () => showToast("Failed to read file", { background: "#b91c1c" });
-  reader.readAsText(f);
-});}
+if (crdFileEl) {
+  crdFileEl.addEventListener("change", (ev) => {
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (crdTextarea) {
+        crdTextarea.value = String(reader.result || "");
+      }
+      showToast("Loaded CRD file", { background: "#0ea5e9" });
+    };
+    reader.onerror = () => showToast("Failed to read file", { background: "#b91c1c" });
+    reader.readAsText(f);
+  });
+}
 
-if (crdLoadBtn) {crdLoadBtn.addEventListener("click", async () => {
-  const text = crdTextarea ? crdTextarea.value : "";
-  if (!text || !String(text).trim()) {
-    showToast("Paste or load CRD file first", { background: "#b91c1c" });
-    return;
-  }
-  const parsed = await parseSchemaText(text);
-  if (parsed.errors && parsed.errors.length) {
-    showToast("Failed to parse CRDs: " + parsed.errors.join("; "), { background: "#b91c1c" });
-    return;
-  }
-  if (!Array.isArray(parsed.crds) || parsed.crds.length === 0) {
-    showToast("No CRDs found. Is this a valid CRD YAML?", { background: "#fbbf24" });
-    return;
-  }
-  try {
-    chrome.storage.local.get("clusterSchema", (data) => {
-      const current = data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
-      current.crds = parsed.crds;
-      chrome.storage.local.set({ clusterSchema: current }, () => {
-        showToast(`CRDs saved: ${parsed.crds.length} CRD(s)`, { background: "#059669" });
-        showCRDStatus(`Loaded: ${parsed.crds.length} CRD(s)`);
-        refreshCRDDisplay();
+if (crdLoadBtn) {
+  crdLoadBtn.addEventListener("click", async () => {
+    const text = crdTextarea ? crdTextarea.value : "";
+    if (!text || !String(text).trim()) {
+      showToast("Paste or load CRD file first", { background: "#b91c1c" });
+      return;
+    }
+    const parsed = await parseSchemaText(text);
+    if (parsed.errors && parsed.errors.length) {
+      showToast("Failed to parse CRDs: " + parsed.errors.join("; "), { background: "#b91c1c" });
+      return;
+    }
+    if (!Array.isArray(parsed.crds) || parsed.crds.length === 0) {
+      showToast("No CRDs found. Is this a valid CRD YAML?", { background: "#fbbf24" });
+      return;
+    }
+    try {
+      chrome.storage.local.get("clusterSchema", (data) => {
+        const current =
+          data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
+        current.crds = parsed.crds;
+        chrome.storage.local.set({ clusterSchema: current }, () => {
+          showToast(`CRDs saved: ${parsed.crds.length} CRD(s)`, { background: "#059669" });
+          showCRDStatus(`Loaded: ${parsed.crds.length} CRD(s)`);
+          refreshCRDDisplay();
+        });
       });
-    });
-  } catch (e) {
-    console.error("save crds failed", e);
-    showToast("Failed to save CRDs", { background: "#b91c1c" });
-  }
-});}
+    } catch (e) {
+      console.error("save crds failed", e);
+      showToast("Failed to save CRDs", { background: "#b91c1c" });
+    }
+  });
+}
 
-if (crdPreviewBtn) {crdPreviewBtn.addEventListener("click", async () => {
-  const text = crdTextarea ? crdTextarea.value : "";
-  if (!text || !String(text).trim()) {
-    showToast("Paste or load CRD file first", { background: "#b91c1c" });
-    return;
-  }
-  const parsed = await parseSchemaText(text);
-  if (parsed.errors && parsed.errors.length) {
-    showToast("Failed to parse: " + parsed.errors.join("; "), { background: "#b91c1c" });
-    return;
-  }
-  const count = Array.isArray(parsed.crds) ? parsed.crds.length : 0;
-  if (count === 0) {
-    showToast("No CRDs found in document", { background: "#fbbf24" });
-    return;
-  }
-  showToast(`Found ${count} CRD(s)`, { background: "#0ea5e9", duration: 4000 });
-});}
+if (crdPreviewBtn) {
+  crdPreviewBtn.addEventListener("click", async () => {
+    const text = crdTextarea ? crdTextarea.value : "";
+    if (!text || !String(text).trim()) {
+      showToast("Paste or load CRD file first", { background: "#b91c1c" });
+      return;
+    }
+    const parsed = await parseSchemaText(text);
+    if (parsed.errors && parsed.errors.length) {
+      showToast("Failed to parse: " + parsed.errors.join("; "), { background: "#b91c1c" });
+      return;
+    }
+    const count = Array.isArray(parsed.crds) ? parsed.crds.length : 0;
+    if (count === 0) {
+      showToast("No CRDs found in document", { background: "#fbbf24" });
+      return;
+    }
+    showToast(`Found ${count} CRD(s)`, { background: "#0ea5e9", duration: 4000 });
+  });
+}
 
-if (crdClearBtn) {crdClearBtn.addEventListener("click", () => {
-  if (crdTextarea) {crdTextarea.value = "";}
-  showCRDStatus("");
-  showToast("Cleared input fields", { background: "#6b7280" });
-});}
+if (crdClearBtn) {
+  crdClearBtn.addEventListener("click", () => {
+    if (crdTextarea) {
+      crdTextarea.value = "";
+    }
+    showCRDStatus("");
+    showToast("Cleared input fields", { background: "#6b7280" });
+  });
+}
 
 // Load stored schema on startup to reflect status
 try {
   chrome.storage.local.get("clusterSchema", (data) => {
     const cs = data && data.clusterSchema;
-    if (!cs) {return;}
+    if (!cs) {
+      return;
+    }
     if (Array.isArray(cs.openapis) && cs.openapis.length > 0) {
       showOpenAPIStatus(`Loaded: ${cs.openapis.length} OpenAPI schema(s)`);
       refreshOpenAPIDisplay();
@@ -346,7 +413,9 @@ try {
       refreshCRDDisplay();
     }
   });
-} catch (e) { /* ignore */ }
+} catch (e) {
+  /* ignore */
+}
 // Show loaded OpenAPI schemas in the options page (v0.4 logic)
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -364,23 +433,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const openAPIStatus = document.getElementById("openAPIStatus");
   let lastOpenAPIFileName = null;
 
-  if (openAPIFile) {openAPIFile.addEventListener("change", (ev) => {
-    const f = ev.target.files && ev.target.files[0];
-    if (!f) {return;}
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (!openAPITextarea) {
-        console.error("openAPITextarea not found in DOM.");
-        showToast("Error: OpenAPI textarea missing", { background: "#b91c1c" });
+  if (openAPIFile) {
+    openAPIFile.addEventListener("change", (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) {
         return;
       }
-      openAPITextarea.value = String(reader.result || "");
-      showToast("Loaded OpenAPI file", { background: "#0ea5e9" });
-      lastOpenAPIFileName = f.name || null;
-    };
-    reader.onerror = () => showToast("Failed to read file", { background: "#b91c1c" });
-    reader.readAsText(f);
-  });}
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (!openAPITextarea) {
+          console.error("openAPITextarea not found in DOM.");
+          showToast("Error: OpenAPI textarea missing", { background: "#b91c1c" });
+          return;
+        }
+        openAPITextarea.value = String(reader.result || "");
+        showToast("Loaded OpenAPI file", { background: "#0ea5e9" });
+        lastOpenAPIFileName = f.name || null;
+      };
+      reader.onerror = () => showToast("Failed to read file", { background: "#b91c1c" });
+      reader.readAsText(f);
+    });
+  }
 
   // ...move all other OpenAPI modal event listeners here as needed...
 });
@@ -405,7 +478,9 @@ const openAPIStatus = document.getElementById("openAPIStatus");
 let lastOpenAPIFileName = null;
 
 function showOpenAPIStatus(msg) {
-  if (openAPIStatus) {openAPIStatus.textContent = msg;}
+  if (openAPIStatus) {
+    openAPIStatus.textContent = msg;
+  }
 }
 
 function refreshOpenAPIDisplay() {
@@ -416,13 +491,19 @@ function refreshOpenAPIDisplay() {
       const openAPIDisplay = document.getElementById("openAPIDisplay");
       if (!cs || !Array.isArray(cs.openapis) || cs.openapis.length === 0) {
         console.debug("[refreshOpenAPIDisplay] hiding - no openapis", cs);
-        if (openAPIDisplay) {openAPIDisplay.style.display = "none";}
+        if (openAPIDisplay) {
+          openAPIDisplay.style.display = "none";
+        }
         return;
       }
       console.debug("[refreshOpenAPIDisplay] showing openapis:", cs.openapis.length, cs.openapis);
-      if (openAPIDisplay) {openAPIDisplay.style.display = "block";}
+      if (openAPIDisplay) {
+        openAPIDisplay.style.display = "block";
+      }
       const openAPICount = document.getElementById("openAPICount");
-      if (openAPICount) {openAPICount.textContent = cs.openapis.length;}
+      if (openAPICount) {
+        openAPICount.textContent = cs.openapis.length;
+      }
       const tableBody = document.getElementById("openAPITableBody");
       if (tableBody) {
         tableBody.innerHTML = "";
@@ -440,7 +521,17 @@ function refreshOpenAPIDisplay() {
           const components = (oas && oas.components && Object.keys(oas.components).length) || 0;
           const source = meta.source || "(unknown)";
           const loadedAt = meta.loadedAt ? new Date(meta.loadedAt).toLocaleString() : "(unknown)";
-          [title, cluster, versionMeta, apiVersion, openapiVersion, paths.toString(), components.toString(), source, loadedAt].forEach((text, idx2) => {
+          [
+            title,
+            cluster,
+            versionMeta,
+            apiVersion,
+            openapiVersion,
+            paths.toString(),
+            components.toString(),
+            source,
+            loadedAt,
+          ].forEach((text, idx2) => {
             const td = document.createElement("td");
             td.textContent = text;
             td.style.padding = "6px";
@@ -453,9 +544,10 @@ function refreshOpenAPIDisplay() {
           delBtn.textContent = "🗑";
           delBtn.title = "Delete";
           delBtn.style.padding = "4px 8px";
-          delBtn.onclick = function() {
+          delBtn.onclick = function () {
             chrome.storage.local.get("clusterSchema", (data) => {
-              const current = data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
+              const current =
+                data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
               current.openapis.splice(idx, 1);
               chrome.storage.local.set({ clusterSchema: current }, () => {
                 showToast("OpenAPI schema deleted", { background: "#b91c1c" });
@@ -469,26 +561,32 @@ function refreshOpenAPIDisplay() {
         });
       }
     });
-  } catch (e) { console.error("refreshOpenAPIDisplay error:", e); }
+  } catch (e) {
+    console.error("refreshOpenAPIDisplay error:", e);
+  }
 }
 
-if (openAPIFile) {openAPIFile.addEventListener("change", (ev) => {
-  const f = ev.target.files && ev.target.files[0];
-  if (!f) {return;}
-  const reader = new FileReader();
-  reader.onload = () => {
-    if (!openAPITextarea) {
-      console.error("openAPITextarea not found in DOM.");
-      showToast("Error: OpenAPI textarea missing", { background: "#b91c1c" });
+if (openAPIFile) {
+  openAPIFile.addEventListener("change", (ev) => {
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) {
       return;
     }
-    openAPITextarea.value = String(reader.result || "");
-    showToast("Loaded OpenAPI file", { background: "#0ea5e9" });
-    lastOpenAPIFileName = f.name || null;
-  };
-  reader.onerror = () => showToast("Failed to read file", { background: "#b91c1c" });
-  reader.readAsText(f);
-});}
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (!openAPITextarea) {
+        console.error("openAPITextarea not found in DOM.");
+        showToast("Error: OpenAPI textarea missing", { background: "#b91c1c" });
+        return;
+      }
+      openAPITextarea.value = String(reader.result || "");
+      showToast("Loaded OpenAPI file", { background: "#0ea5e9" });
+      lastOpenAPIFileName = f.name || null;
+    };
+    reader.onerror = () => showToast("Failed to read file", { background: "#b91c1c" });
+    reader.readAsText(f);
+  });
+}
 
 if (openAPIImportBtn && openAPIPanelModal) {
   openAPIImportBtn.onclick = () => {
@@ -498,103 +596,146 @@ if (openAPIImportBtn && openAPIPanelModal) {
 if (closeOpenAPIModalBtn && openAPIPanelModal) {
   closeOpenAPIModalBtn.onclick = () => {
     openAPIPanelModal.style.display = "none";
-    if (openAPIFile) {openAPIFile.value = "";}
-    if (openAPITextarea) {openAPITextarea.value = "";}
-    if (openAPICluster) {openAPICluster.value = "";}
-    if (openAPIVersion) {openAPIVersion.value = "";}
-    if (openAPIStatus) {openAPIStatus.textContent = "";}
+    if (openAPIFile) {
+      openAPIFile.value = "";
+    }
+    if (openAPITextarea) {
+      openAPITextarea.value = "";
+    }
+    if (openAPICluster) {
+      openAPICluster.value = "";
+    }
+    if (openAPIVersion) {
+      openAPIVersion.value = "";
+    }
+    if (openAPIStatus) {
+      openAPIStatus.textContent = "";
+    }
   };
 }
 
 if (openAPIClearBtn) {
   openAPIClearBtn.onclick = () => {
-    if (openAPIFile) {openAPIFile.value = "";}
-    if (openAPITextarea) {openAPITextarea.value = "";}
-    if (openAPICluster) {openAPICluster.value = "";}
-    if (openAPIVersion) {openAPIVersion.value = "";}
-    if (openAPIStatus) {openAPIStatus.textContent = "";}
+    if (openAPIFile) {
+      openAPIFile.value = "";
+    }
+    if (openAPITextarea) {
+      openAPITextarea.value = "";
+    }
+    if (openAPICluster) {
+      openAPICluster.value = "";
+    }
+    if (openAPIVersion) {
+      openAPIVersion.value = "";
+    }
+    if (openAPIStatus) {
+      openAPIStatus.textContent = "";
+    }
   };
 }
 
-if (openAPILoadBtn) {openAPILoadBtn.addEventListener("click", async () => {
-  openAPILoadBtn.disabled = true;
-  try {
-    const text = openAPITextarea ? openAPITextarea.value : "";
-    if (!text || !String(text).trim()) {
-      showToast("Paste or load an OpenAPI file first", { background: "#b91c1c" });
-      openAPILoadBtn.disabled = false;
-      return;
-    }
-
-    const cluster = openAPICluster?.value?.trim() || "";
-    const version = openAPIVersion?.value?.trim() || "";
-    if (!cluster || !version) {
-      showToast("Cluster and Version are required", { background: "#b91c1c" });
-      openAPILoadBtn.disabled = false;
-      return;
-    }
-
-    const parsed = await parseSchemaText(text);
-    if (parsed.errors && parsed.errors.length) {
-      showToast("Failed to parse OpenAPI: " + parsed.errors.join("; "), { background: "#b91c1c" });
-      openAPILoadBtn.disabled = false;
-      return;
-    }
-
-    // Extract all OpenAPI schemas from the parsed documents
-    const openapis = [];
-    if (parsed.openapi) {openapis.push(parsed.openapi);}
-    parsed.docs.forEach((doc) => {
-      if (doc && typeof doc === "object" && (doc.openapi || doc.swagger || doc.paths)) {
-        openapis.push(doc);
-      }
-    });
-
-    if (openapis.length === 0) {
-      showToast("No OpenAPI specification found. Is this a valid OpenAPI document?", { background: "#fbbf24" });
-      openAPILoadBtn.disabled = false;
-      return;
-    }
-
-    chrome.storage.local.get("clusterSchema", (data) => {
-      const current = data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
-      // Wrap new OpenAPI specs with metadata and normalize existing entries
-      const newWrapped = openapis.map((oas) => ({
-        spec: oas,
-        meta: {
-          cluster,
-          version,
-          source: lastOpenAPIFileName || "manual",
-          loadedAt: Date.now(),
-        }
-      }));
-      // Remove any previous openapis for this cluster/version
-      const filtered = (current.openapis || []).filter((rec) => {
-        const m = rec && rec.meta;
-        return !(m && m.cluster === cluster && m.version === version);
-      });
-      current.openapis = [...filtered, ...newWrapped];
-      chrome.storage.local.set({ clusterSchema: current }, () => {
-        showToast("OpenAPI schema(s) loaded", { background: "#0ea5e9" });
-        if (openAPIPanelModal) {openAPIPanelModal.style.display = "none";}
-        refreshOpenAPIDisplay();
-        // v0.4: always show table after import
-        const openAPIDisplay = document.getElementById("openAPIDisplay");
-        if (openAPIDisplay) {openAPIDisplay.style.display = "block";}
+if (openAPILoadBtn) {
+  openAPILoadBtn.addEventListener("click", async () => {
+    openAPILoadBtn.disabled = true;
+    try {
+      const text = openAPITextarea ? openAPITextarea.value : "";
+      if (!text || !String(text).trim()) {
+        showToast("Paste or load an OpenAPI file first", { background: "#b91c1c" });
         openAPILoadBtn.disabled = false;
-        if (openAPIFile) {openAPIFile.value = "";}
-        if (openAPITextarea) {openAPITextarea.value = "";}
-        if (openAPICluster) {openAPICluster.value = "";}
-        if (openAPIVersion) {openAPIVersion.value = "";}
-        if (openAPIStatus) {openAPIStatus.textContent = "";}
-        lastOpenAPIFileName = null;
+        return;
+      }
+
+      const cluster = openAPICluster?.value?.trim() || "";
+      const version = openAPIVersion?.value?.trim() || "";
+      if (!cluster || !version) {
+        showToast("Cluster and Version are required", { background: "#b91c1c" });
+        openAPILoadBtn.disabled = false;
+        return;
+      }
+
+      const parsed = await parseSchemaText(text);
+      if (parsed.errors && parsed.errors.length) {
+        showToast("Failed to parse OpenAPI: " + parsed.errors.join("; "), {
+          background: "#b91c1c",
+        });
+        openAPILoadBtn.disabled = false;
+        return;
+      }
+
+      // Extract all OpenAPI schemas from the parsed documents
+      const openapis = [];
+      if (parsed.openapi) {
+        openapis.push(parsed.openapi);
+      }
+      parsed.docs.forEach((doc) => {
+        if (doc && typeof doc === "object" && (doc.openapi || doc.swagger || doc.paths)) {
+          openapis.push(doc);
+        }
       });
-    });
-  } catch (e) {
-    showToast("Unexpected error: " + (e && e.message), { background: "#b91c1c" });
-    openAPILoadBtn.disabled = false;
-  }
-});}
+
+      if (openapis.length === 0) {
+        showToast("No OpenAPI specification found. Is this a valid OpenAPI document?", {
+          background: "#fbbf24",
+        });
+        openAPILoadBtn.disabled = false;
+        return;
+      }
+
+      chrome.storage.local.get("clusterSchema", (data) => {
+        const current =
+          data && data.clusterSchema ? { ...data.clusterSchema } : { openapis: [], crds: [] };
+        // Wrap new OpenAPI specs with metadata and normalize existing entries
+        const newWrapped = openapis.map((oas) => ({
+          spec: oas,
+          meta: {
+            cluster,
+            version,
+            source: lastOpenAPIFileName || "manual",
+            loadedAt: Date.now(),
+          },
+        }));
+        // Remove any previous openapis for this cluster/version
+        const filtered = (current.openapis || []).filter((rec) => {
+          const m = rec && rec.meta;
+          return !(m && m.cluster === cluster && m.version === version);
+        });
+        current.openapis = [...filtered, ...newWrapped];
+        chrome.storage.local.set({ clusterSchema: current }, () => {
+          showToast("OpenAPI schema(s) loaded", { background: "#0ea5e9" });
+          if (openAPIPanelModal) {
+            openAPIPanelModal.style.display = "none";
+          }
+          refreshOpenAPIDisplay();
+          // v0.4: always show table after import
+          const openAPIDisplay = document.getElementById("openAPIDisplay");
+          if (openAPIDisplay) {
+            openAPIDisplay.style.display = "block";
+          }
+          openAPILoadBtn.disabled = false;
+          if (openAPIFile) {
+            openAPIFile.value = "";
+          }
+          if (openAPITextarea) {
+            openAPITextarea.value = "";
+          }
+          if (openAPICluster) {
+            openAPICluster.value = "";
+          }
+          if (openAPIVersion) {
+            openAPIVersion.value = "";
+          }
+          if (openAPIStatus) {
+            openAPIStatus.textContent = "";
+          }
+          lastOpenAPIFileName = null;
+        });
+      });
+    } catch (e) {
+      showToast("Unexpected error: " + (e && e.message), { background: "#b91c1c" });
+      openAPILoadBtn.disabled = false;
+    }
+  });
+}
 
 if (openAPIPreviewBtn) {
   openAPIPreviewBtn.onclick = async () => {
@@ -603,23 +744,31 @@ if (openAPIPreviewBtn) {
       try {
         schemaText = await openAPIFile.files[0].text();
       } catch (e) {
-        if (openAPIStatus) {openAPIStatus.textContent = "Failed to read file.";}
+        if (openAPIStatus) {
+          openAPIStatus.textContent = "Failed to read file.";
+        }
         return;
       }
     } else if (openAPITextarea && openAPITextarea.value.trim()) {
       schemaText = openAPITextarea.value.trim();
     } else {
-      if (openAPIStatus) {openAPIStatus.textContent = "No schema source provided.";}
+      if (openAPIStatus) {
+        openAPIStatus.textContent = "No schema source provided.";
+      }
       return;
     }
     let parsed;
     try {
       parsed = await parseSchemaText(schemaText);
     } catch (e) {
-      if (openAPIStatus) {openAPIStatus.textContent = "Invalid OpenAPI JSON/YAML.";}
+      if (openAPIStatus) {
+        openAPIStatus.textContent = "Invalid OpenAPI JSON/YAML.";
+      }
       return;
     }
-    if (openAPIStatus) {openAPIStatus.textContent = "Schema parsed successfully. (Preview only)";}
+    if (openAPIStatus) {
+      openAPIStatus.textContent = "Schema parsed successfully. (Preview only)";
+    }
     // Optionally, show a summary or structure here
   };
 }
@@ -641,9 +790,13 @@ if (closeCRDModalBtn && crdPanelModal) {
   };
 }
 const closeRuleModalBtn = document.getElementById("closeRuleModal");
-if (closeRuleModalBtn) {closeRuleModalBtn.onclick = () => {
-  if (ruleEditModal) {ruleEditModal.style.display = "none";}
-};}
+if (closeRuleModalBtn) {
+  closeRuleModalBtn.onclick = () => {
+    if (ruleEditModal) {
+      ruleEditModal.style.display = "none";
+    }
+  };
+}
 import { parseSchemaText } from "../utils/clusterSchema.js";
 
 let rules = [];
@@ -690,7 +843,6 @@ if (exportRulesBtn) {
 // const kyvernoCancelBtn = document.getElementById("kyvernoCancel");
 // const openAPIPreviewBtn = document.getElementById("openAPIPreviewBtn");
 
-
 // function showKyvernoPreview(converted, rawText, meta = {}) {
 //   _kyvernoPreviewState = { converted, rawText, meta };
 //   try {
@@ -700,18 +852,20 @@ if (exportRulesBtn) {
 //   }
 // }
 
-
 import { showToast, saveRawKyverno, applyNormalizedRules } from "./utils.js";
 // ...existing code...
 
 function hideKyvernoPreview() {
   _kyvernoPreviewState = null;
-  try { kpHide(); } catch { /* defensive */ }
+  try {
+    kpHide();
+  } catch {
+    /* defensive */
+  }
 }
 
 // Commented out unused function to resolve no-unused-vars
 // function escapeHtml(s) { return kpEscapeHtml(s); }
-
 
 import { updateRuleCounter, showDeleteConfirmation, hideDeleteConfirmation } from "./rules.js";
 
@@ -725,123 +879,179 @@ window.editRule = function (idx) {
   inputs.kind.value = r.kind || "";
   inputs.match.value = r.match;
   inputs.pattern.value = r.pattern || "";
-  inputs.required.value = (r.required === true || r.required === "true") ? "true" : "false";
+  inputs.required.value = r.required === true || r.required === "true" ? "true" : "false";
   inputs.severity.value = r.severity;
   inputs.message.value = r.message;
-  if (inputs.enabled) {inputs.enabled.checked = (r.enabled === undefined) ? true : !!r.enabled;}
+  if (inputs.enabled) {
+    inputs.enabled.checked = r.enabled === undefined ? true : !!r.enabled;
+  }
   if (inputs.fix) {
     try {
       inputs.fix.value = r.fix ? JSON.stringify(r.fix, null, 2) : "";
-    } catch { inputs.fix.value = ""; }
+    } catch {
+      inputs.fix.value = "";
+    }
   }
-  if (inputs.rationale) {inputs.rationale.value = r.explain && r.explain.rationale ? r.explain.rationale : "";}
-  if (inputs.references) {inputs.references.value = r.explain && Array.isArray(r.explain.refs) ? r.explain.refs.join(",") : (r.references || "");}
+  if (inputs.rationale) {
+    inputs.rationale.value = r.explain && r.explain.rationale ? r.explain.rationale : "";
+  }
+  if (inputs.references) {
+    inputs.references.value =
+      r.explain && Array.isArray(r.explain.refs) ? r.explain.refs.join(",") : r.references || "";
+  }
 };
 
 window.deleteRule = function (idx) {
   showDeleteConfirmation(idx, rules, saveRules, renderTable, showToast);
 };
 
-
-
 const addRuleBtn = document.getElementById("addRule");
-if (addRuleBtn) {addRuleBtn.onclick = () => {
-  editingIndex = null;
-  formTitle.textContent = "Add Rule";
-  Object.values(inputs).forEach(i => i.value = "");
-  if (inputs.required) {inputs.required.value = "false";}
-  if (inputs.severity) {inputs.severity.value = "warning";}
-  ruleEditModal.style.display = "flex";
-  if (inputs.enabled) {inputs.enabled.checked = true;}
-};}
+if (addRuleBtn) {
+  addRuleBtn.onclick = () => {
+    editingIndex = null;
+    formTitle.textContent = "Add Rule";
+    Object.values(inputs).forEach((i) => (i.value = ""));
+    if (inputs.required) {
+      inputs.required.value = "false";
+    }
+    if (inputs.severity) {
+      inputs.severity.value = "warning";
+    }
+    ruleEditModal.style.display = "flex";
+    if (inputs.enabled) {
+      inputs.enabled.checked = true;
+    }
+  };
+}
 
 const cancelRuleBtn = document.getElementById("cancelRule");
-if (cancelRuleBtn) {cancelRuleBtn.onclick = () => {
-  ruleEditModal.style.display = "none";
-};}
+if (cancelRuleBtn) {
+  cancelRuleBtn.onclick = () => {
+    ruleEditModal.style.display = "none";
+  };
+}
 
 const saveRuleBtn = document.getElementById("saveRule");
-if (saveRuleBtn) {saveRuleBtn.onclick = () => {
-  // saveRule clicked
-  const newRule = {
-    id: (inputs.id && inputs.id.value ? inputs.id.value.trim() : ""),
-    description: (inputs.desc && inputs.desc.value ? inputs.desc.value.trim() : ""),
-    kind: (inputs.kind && inputs.kind.value ? inputs.kind.value.trim() : ""),
-    match: (inputs.match && inputs.match.value ? inputs.match.value.trim() : ""),
-    pattern: (inputs.pattern && inputs.pattern.value ? inputs.pattern.value.trim() : ""),
-    required: (inputs.required && inputs.required.value) ? inputs.required.value === "true" : false,
-    enabled: inputs.enabled ? !!inputs.enabled.checked : true,
-    severity: (inputs.severity && inputs.severity.value) ? inputs.severity.value : "warning",
-    message: (inputs.message && inputs.message.value ? inputs.message.value.trim() : ""),
-    // parse fix JSON if provided; keep as object
-    fix: (function(){
-      if (!inputs.fix) {return undefined;}
-      const v = (inputs.fix.value || "").trim();
-      if (!v) {return undefined;}
-      try { return JSON.parse(v); } catch (e) { showToast("Fix JSON invalid: " + (e && e.message), { background: "#b91c1c" }); return undefined; }
-    })(),
-    // explain metadata: rationale + refs (array)
-    explain: (function(){
-      if (!inputs || !inputs.rationale) {return undefined;}
-      const rationale = (inputs.rationale.value || "").trim();
-      const refsRaw = (inputs.references && inputs.references.value) ? String(inputs.references.value || "") : "";
-      const refs = refsRaw.split(",").map(s=>s.trim()).filter(Boolean);
-      if (!rationale && refs.length === 0) {return undefined;}
-      return { rationale: rationale || "", refs };
-    })(),
-  };
+if (saveRuleBtn) {
+  saveRuleBtn.onclick = () => {
+    // saveRule clicked
+    const newRule = {
+      id: inputs.id && inputs.id.value ? inputs.id.value.trim() : "",
+      description: inputs.desc && inputs.desc.value ? inputs.desc.value.trim() : "",
+      kind: inputs.kind && inputs.kind.value ? inputs.kind.value.trim() : "",
+      match: inputs.match && inputs.match.value ? inputs.match.value.trim() : "",
+      pattern: inputs.pattern && inputs.pattern.value ? inputs.pattern.value.trim() : "",
+      required: inputs.required && inputs.required.value ? inputs.required.value === "true" : false,
+      enabled: inputs.enabled ? !!inputs.enabled.checked : true,
+      severity: inputs.severity && inputs.severity.value ? inputs.severity.value : "warning",
+      message: inputs.message && inputs.message.value ? inputs.message.value.trim() : "",
+      // parse fix JSON if provided; keep as object
+      fix: (function () {
+        if (!inputs.fix) {
+          return undefined;
+        }
+        const v = (inputs.fix.value || "").trim();
+        if (!v) {
+          return undefined;
+        }
+        try {
+          return JSON.parse(v);
+        } catch (e) {
+          showToast("Fix JSON invalid: " + (e && e.message), { background: "#b91c1c" });
+          return undefined;
+        }
+      })(),
+      // explain metadata: rationale + refs (array)
+      explain: (function () {
+        if (!inputs || !inputs.rationale) {
+          return undefined;
+        }
+        const rationale = (inputs.rationale.value || "").trim();
+        const refsRaw =
+          inputs.references && inputs.references.value ? String(inputs.references.value || "") : "";
+        const refs = refsRaw
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        if (!rationale && refs.length === 0) {
+          return undefined;
+        }
+        return { rationale: rationale || "", refs };
+      })(),
+    };
 
-  // Basic validation
-  const missing = [];
-  if (!newRule.id) {missing.push("id");}
-  if (!newRule.description) {missing.push("description");}
-  if (!newRule.match) {missing.push("match");}
-  if (!newRule.pattern) {missing.push("pattern");}
-  if (typeof newRule.required !== "boolean") {missing.push("required");}
-  if (!newRule.severity) {missing.push("severity");}
-  if (!newRule.message) {missing.push("message");}
+    // Basic validation
+    const missing = [];
+    if (!newRule.id) {
+      missing.push("id");
+    }
+    if (!newRule.description) {
+      missing.push("description");
+    }
+    if (!newRule.match) {
+      missing.push("match");
+    }
+    if (!newRule.pattern) {
+      missing.push("pattern");
+    }
+    if (typeof newRule.required !== "boolean") {
+      missing.push("required");
+    }
+    if (!newRule.severity) {
+      missing.push("severity");
+    }
+    if (!newRule.message) {
+      missing.push("message");
+    }
 
-  if (missing.length) {
-    showToast("Missing required fields: " + missing.join(", "), { background: "#b91c1c" });
-    return;
-  }
-
-  // Validate severity
-  const allowedSeverities = ["info", "warning", "error"];
-  if (!allowedSeverities.includes(newRule.severity)) {
-    showToast("Severity must be one of: info, warning, error", { background: "#b91c1c" });
-    return;
-  }
-
-  // Prevent duplicate IDs (unless editing the same index)
-  const duplicateIdx = rules.findIndex((r, i) => r.id === newRule.id && i !== editingIndex);
-  if (duplicateIdx !== -1) {
-    // If we're editing an existing rule, allow update in place. If creating
-    // a new rule (editingIndex is null) but the ID already exists, override
-    // the existing rule to preserve user intent (import-like behavior).
-    if (editingIndex === null) {
-      rules[duplicateIdx] = newRule;
-      saveRules();
-      renderTable();
-      showToast(`Replaced existing rule with id "${newRule.id}"`, { background: "#059669" });
-      if (form) {form.style.display = "none";}
-      return;
-    } else {
-      // editingIndex is same as found index case will be skipped by findIndex
-      showToast(`Rule ID "${newRule.id}" already exists. Choose a unique ID.`, { background: "#b91c1c" });
+    if (missing.length) {
+      showToast("Missing required fields: " + missing.join(", "), { background: "#b91c1c" });
       return;
     }
-  }
 
-  if (editingIndex !== null) {rules[editingIndex] = newRule;}
-  else {rules.push(newRule);}
+    // Validate severity
+    const allowedSeverities = ["info", "warning", "error"];
+    if (!allowedSeverities.includes(newRule.severity)) {
+      showToast("Severity must be one of: info, warning, error", { background: "#b91c1c" });
+      return;
+    }
 
-  saveRules();
-  ruleEditModal.style.display = "none";
-  renderTable();
-  showToast(editingIndex !== null ? "Rule updated" : "Rule added", { background: "#059669" });
-};}
+    // Prevent duplicate IDs (unless editing the same index)
+    const duplicateIdx = rules.findIndex((r, i) => r.id === newRule.id && i !== editingIndex);
+    if (duplicateIdx !== -1) {
+      // If we're editing an existing rule, allow update in place. If creating
+      // a new rule (editingIndex is null) but the ID already exists, override
+      // the existing rule to preserve user intent (import-like behavior).
+      if (editingIndex === null) {
+        rules[duplicateIdx] = newRule;
+        saveRules();
+        renderTable();
+        showToast(`Replaced existing rule with id "${newRule.id}"`, { background: "#059669" });
+        if (form) {
+          form.style.display = "none";
+        }
+        return;
+      } else {
+        // editingIndex is same as found index case will be skipped by findIndex
+        showToast(`Rule ID "${newRule.id}" already exists. Choose a unique ID.`, {
+          background: "#b91c1c",
+        });
+        return;
+      }
+    }
 
+    if (editingIndex !== null) {
+      rules[editingIndex] = newRule;
+    } else {
+      rules.push(newRule);
+    }
+
+    saveRules();
+    ruleEditModal.style.display = "none";
+    renderTable();
+    showToast(editingIndex !== null ? "Rule updated" : "Rule added", { background: "#059669" });
+  };
+}
 
 const importRulesBtn = document.getElementById("importRules");
 const cancelImportBtn = document.getElementById("cancelImport");
@@ -855,9 +1065,15 @@ if (importRulesBtn && importPanelModal) {
 if (cancelImportBtn && importPanelModal) {
   cancelImportBtn.onclick = () => {
     importPanelModal.style.display = "none";
-    if (importFile) {importFile.value = "";}
-    if (importTextarea) {importTextarea.value = "";}
-    if (importUrlInput) {importUrlInput.value = "";}
+    if (importFile) {
+      importFile.value = "";
+    }
+    if (importTextarea) {
+      importTextarea.value = "";
+    }
+    if (importUrlInput) {
+      importUrlInput.value = "";
+    }
   };
 }
 
@@ -874,7 +1090,15 @@ if (pasteClipboardBtn && importTextarea) {
 
 if (doImportBtn) {
   doImportBtn.onclick = async () => {
-    await importRules({ importFile, importTextarea, importUrlInput, rules, saveRules, renderTable, importPanelModal });
+    await importRules({
+      importFile,
+      importTextarea,
+      importUrlInput,
+      rules,
+      saveRules,
+      renderTable,
+      importPanelModal,
+    });
   };
 }
 
@@ -891,34 +1115,48 @@ function saveRules() {
 // JSON imports: normalize fields, avoid duplicates (replace by id), persist
 // and refresh the table.
 
-if (kyvernoCancelBtn) {kyvernoCancelBtn.addEventListener("click", hideKyvernoPreview);}
-if (kyvernoImportRawBtn) {kyvernoImportRawBtn.addEventListener("click", () => {
-  if (!_kyvernoPreviewState) {return;}
-  saveRawKyverno(_kyvernoPreviewState.rawText, _kyvernoPreviewState.meta);
-  hideKyvernoPreview();
-});}
-if (kyvernoImportConvertedBtn) {kyvernoImportConvertedBtn.addEventListener("click", () => {
-  if (!_kyvernoPreviewState) {return;}
-  // Only import selected Kyverno rules, clear preview state after import
-  const boxes = kyvernoPreviewBody ? kyvernoPreviewBody.querySelectorAll("input.kyvernoRowCheckbox") : [];
-  const selected = [];
-  boxes.forEach(b => {
-    try {
-      if (b.checked) {
-        const idx = Number(b.value);
-        const item = _kyvernoPreviewState.converted[idx];
-        if (item) {selected.push(item);}
-      }
-    } catch {}
+if (kyvernoCancelBtn) {
+  kyvernoCancelBtn.addEventListener("click", hideKyvernoPreview);
+}
+if (kyvernoImportRawBtn) {
+  kyvernoImportRawBtn.addEventListener("click", () => {
+    if (!_kyvernoPreviewState) {
+      return;
+    }
+    saveRawKyverno(_kyvernoPreviewState.rawText, _kyvernoPreviewState.meta);
+    hideKyvernoPreview();
   });
-  if (!selected.length) {
-    showToast("No converted rules selected to import.", { background: "#b91c1c" });
+}
+if (kyvernoImportConvertedBtn) {
+  kyvernoImportConvertedBtn.addEventListener("click", () => {
+    if (!_kyvernoPreviewState) {
+      return;
+    }
+    // Only import selected Kyverno rules, clear preview state after import
+    const boxes = kyvernoPreviewBody
+      ? kyvernoPreviewBody.querySelectorAll("input.kyvernoRowCheckbox")
+      : [];
+    const selected = [];
+    boxes.forEach((b) => {
+      try {
+        if (b.checked) {
+          const idx = Number(b.value);
+          const item = _kyvernoPreviewState.converted[idx];
+          if (item) {
+            selected.push(item);
+          }
+        }
+      } catch {}
+    });
+    if (!selected.length) {
+      showToast("No converted rules selected to import.", { background: "#b91c1c" });
+      _kyvernoPreviewState = null;
+      return;
+    }
+    // Overwrite rules with only selected Kyverno rules
+    rules = [];
+    applyNormalizedRules(selected, rules, saveRules, renderTable);
     _kyvernoPreviewState = null;
-    return;
-  }
-  // Overwrite rules with only selected Kyverno rules
-  rules = [];
-  applyNormalizedRules(selected, rules, saveRules, renderTable);
-  _kyvernoPreviewState = null;
-  hideKyvernoPreview();
-});}
+    hideKyvernoPreview();
+  });
+}
