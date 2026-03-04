@@ -23,7 +23,9 @@ async function initPopup() {
   // use manual validation on non-GitHub pages).
   if (closeSuggestionBtn) {
     closeSuggestionBtn.addEventListener("click", () => {
-      if (suggestionModal) { suggestionModal.style.display = "none"; }
+      if (suggestionModal) {
+        suggestionModal.style.display = "none";
+      }
     });
   }
   if (copyPatchBtn) {
@@ -60,7 +62,9 @@ async function initPopup() {
   // Explain modal close button wiring (also needed for manual flow).
   if (closeExplainBtn) {
     closeExplainBtn.addEventListener("click", () => {
-      if (explainModal) { explainModal.style.display = "none"; }
+      if (explainModal) {
+        explainModal.style.display = "none";
+      }
     });
   }
 
@@ -77,10 +81,14 @@ async function initPopup() {
     validateYaml = m.validateYaml;
     // preview helper for suggestions
     var previewPatchedYaml = m.previewPatchedYaml;
-    if (bootStatus) {bootStatus.textContent = "Ready";}
+    if (bootStatus) {
+      bootStatus.textContent = "Ready";
+    }
   } catch (err) {
     // Failed to load rules engine in popup
-    if (bootStatus) {bootStatus.textContent = "Error loading validation engine — see console for details.";}
+    if (bootStatus) {
+      bootStatus.textContent = "Error loading validation engine — see console for details.";
+    }
     // Keep running so manual paste may still work; but mark validation unavailable.
   }
   // Try to import cluster schema validator (optional)
@@ -95,9 +103,13 @@ async function initPopup() {
   const previewAvailable = typeof previewPatchedYaml === "function";
 
   function showValidationUnavailable(note) {
-    if (bootStatus) {bootStatus.textContent = note || "Validation engine not available.";}
+    if (bootStatus) {
+      bootStatus.textContent = note || "Validation engine not available.";
+    }
     const summaryEl = document.getElementById("summary");
-    if (summaryEl) {summaryEl.textContent = "Validation unavailable — see console for details.";}
+    if (summaryEl) {
+      summaryEl.textContent = "Validation unavailable — see console for details.";
+    }
     const statusBadge = document.getElementById("statusBadge");
     if (statusBadge) {
       statusBadge.textContent = "ERROR";
@@ -126,11 +138,19 @@ async function initPopup() {
 
   // Compute a human-friendly source label for each result row
   function getSourceLabel(r) {
-    if (r && r.source) {return r.source;}
+    if (r && r.source) {
+      return r.source;
+    }
     const id = r && r.ruleId ? String(r.ruleId) : "";
-    if (id.startsWith("schema-crd")) {return "CRD schema";}
-    if (id.startsWith("schema-openapi")) {return "OpenAPI schema";}
-    if (id.startsWith("schema-")) {return "Schema validation";}
+    if (id.startsWith("schema-crd")) {
+      return "CRD schema";
+    }
+    if (id.startsWith("schema-openapi")) {
+      return "OpenAPI schema";
+    }
+    if (id.startsWith("schema-")) {
+      return "Schema validation";
+    }
     return "Guardon rules";
   }
 
@@ -138,14 +158,19 @@ async function initPopup() {
   // If there are multiple messages (e.g. JSON array), they will be rendered
   // as separate list items in the UI for better readability.
   function normalizeMessageLines(msg) {
-    if (msg === null || msg === undefined) {return [""];}
+    if (msg === null || msg === undefined) {
+      return [""];
+    }
 
     let raw = msg;
 
     // If we were given a JSON string representation, try to parse it first.
     if (typeof raw === "string") {
       const trimmed = raw.trim();
-      if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}"))) {
+      if (
+        (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+        (trimmed.startsWith("{") && trimmed.endsWith("}"))
+      ) {
         try {
           raw = JSON.parse(trimmed);
         } catch (e) {
@@ -158,7 +183,7 @@ async function initPopup() {
 
     if (Array.isArray(raw)) {
       // Multiple messages -> one line per entry
-      lines = raw.map(x => String(x));
+      lines = raw.map((x) => String(x));
     } else if (raw && typeof raw === "object") {
       // Best-effort: key/value pairs as individual lines
       const parts = [];
@@ -171,12 +196,14 @@ async function initPopup() {
     }
 
     // Strip outer quotes and noisy braces from each line
-    lines = lines.map(line => {
-      let s = String(line).trim();
-      s = s.replace(/^"([\s\S]*)"$/, "$1");
-      s = s.replace(/[{}]/g, "");
-      return s;
-    }).filter(s => s.length > 0);
+    lines = lines
+      .map((line) => {
+        let s = String(line).trim();
+        s = s.replace(/^"([\s\S]*)"$/, "$1");
+        s = s.replace(/[{}]/g, "");
+        return s;
+      })
+      .filter((s) => s.length > 0);
 
     return lines.length ? lines : [""];
   }
@@ -190,7 +217,7 @@ async function initPopup() {
     }
     const ul = document.createElement("ul");
     ul.className = "message-list";
-    lines.forEach(line => {
+    lines.forEach((line) => {
       const li = document.createElement("li");
       li.textContent = line;
       ul.appendChild(li);
@@ -224,7 +251,9 @@ async function initPopup() {
         document.documentElement.classList.add("dark");
         document.body && document.body.classList.add("dark");
       }
-      if (themeToggle) {themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";}
+      if (themeToggle) {
+        themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+      }
     } catch (e) {
       // fallback: do nothing
     }
@@ -234,7 +263,9 @@ async function initPopup() {
   if (themeToggle) {
     themeToggle.addEventListener("click", async () => {
       const isDark = document.documentElement.classList.toggle("dark");
-      if (document.body) {document.body.classList.toggle("dark", isDark);}
+      if (document.body) {
+        document.body.classList.toggle("dark", isDark);
+      }
       try {
         await storageSet({ popupTheme: isDark ? "dark" : "light" });
       } catch (e) {
@@ -285,9 +316,15 @@ async function initPopup() {
   try {
     yamlText = await new Promise((resolve) => {
       chrome.tabs.sendMessage(tab.id, { type: "GET_YAML" }, (resp) => {
-        if (chrome.runtime.lastError) {return resolve(null);}
-        if (!resp) {return resolve(null);}
-        if (typeof resp === "string") {return resolve(resp);}
+        if (chrome.runtime.lastError) {
+          return resolve(null);
+        }
+        if (!resp) {
+          return resolve(null);
+        }
+        if (typeof resp === "string") {
+          return resolve(resp);
+        }
         return resolve(resp.yamlText || null);
       });
     });
@@ -315,10 +352,16 @@ async function initPopup() {
     statusBadge.classList.add("pulse");
     const manualDiv = document.getElementById("manual");
     const manualArea = document.getElementById("manualYaml");
-    if (manualDiv) {manualDiv.style.display = "block";}
-    if (manualArea) {manualArea.style.display = "block";}
+    if (manualDiv) {
+      manualDiv.style.display = "block";
+    }
+    if (manualArea) {
+      manualArea.style.display = "block";
+    }
     const fetchedNotice = document.getElementById("fetchedNotice");
-    if (fetchedNotice) {fetchedNotice.style.display = "none";}
+    if (fetchedNotice) {
+      fetchedNotice.style.display = "none";
+    }
     const validateManualBtn = document.getElementById("validateManual");
     if (validateManualBtn) {
       validateManualBtn.onclick = async () => {
@@ -327,7 +370,9 @@ async function initPopup() {
           return;
         }
         const content = (document.getElementById("manualYaml") || { value: "" }).value;
-        if (!content) {return;}
+        if (!content) {
+          return;
+        }
         // For manual validations, keep the pasted YAML available
         // for suggestion preview helpers.
         currentYamlText = content;
@@ -341,10 +386,16 @@ async function initPopup() {
           let schemaDiagnostic = "";
           let schemaErrorSection = "";
           if (typeof validateSchemaYaml === "function") {
-            const csData = await new Promise((resolve) => chrome.storage.local.get("clusterSchema", (d) => resolve(d && d.clusterSchema ? d.clusterSchema : { openapis: [], crds: [] })));
+            const csData = await new Promise((resolve) =>
+              chrome.storage.local.get("clusterSchema", (d) =>
+                resolve(d && d.clusterSchema ? d.clusterSchema : { openapis: [], crds: [] })
+              )
+            );
             schemaResults = await validateSchemaYaml(content, csData);
             if (Array.isArray(schemaResults) && schemaResults.length) {
-              const existingKeys = new Set(results.map(r => `${r.ruleId}||${r.path}||${r.message}`));
+              const existingKeys = new Set(
+                results.map((r) => `${r.ruleId}||${r.path}||${r.message}`)
+              );
               for (const sr of schemaResults) {
                 const key = `${sr.ruleId}||${sr.path}||${sr.message}`;
                 if (!existingKeys.has(key)) {
@@ -353,7 +404,12 @@ async function initPopup() {
                 }
               }
             }
-            const hasSchemas = !!(csData && ((Array.isArray(csData.openapis) && csData.openapis.length > 0) || (Array.isArray(csData.crds) && csData.crds.length > 0) || csData.openapi));
+            const hasSchemas = !!(
+              csData &&
+              ((Array.isArray(csData.openapis) && csData.openapis.length > 0) ||
+                (Array.isArray(csData.crds) && csData.crds.length > 0) ||
+                csData.openapi)
+            );
             if (schemaResults.length === 0) {
               if (hasSchemas) {
                 schemaDiagnostic = "Schema-based validation: no issues found for this resource.";
@@ -361,10 +417,18 @@ async function initPopup() {
                 schemaDiagnostic = "No schema present for this resource.";
               }
             } else {
-              const errorCount = schemaResults.filter(r => r.severity === "error").length;
+              const errorCount = schemaResults.filter((r) => r.severity === "error").length;
               schemaDiagnostic = `Schema-based validation: ${schemaResults.length} issue(s), ${errorCount} error(s).`;
-              schemaDiagnostic += "\n" + schemaResults.slice(0,3).map(r => `${r.path}: ${r.message}`).join("\n");
-              schemaErrorSection = schemaResults.filter(r => r.severity === "error").map(r => `<li><b>${r.path}</b>: ${r.message}</li>`).join("");
+              schemaDiagnostic +=
+                "\n" +
+                schemaResults
+                  .slice(0, 3)
+                  .map((r) => `${r.path}: ${r.message}`)
+                  .join("\n");
+              schemaErrorSection = schemaResults
+                .filter((r) => r.severity === "error")
+                .map((r) => `<li><b>${r.path}</b>: ${r.message}</li>`)
+                .join("");
             }
           } else {
             schemaDiagnostic = "Schema validator not available.";
@@ -397,17 +461,19 @@ async function initPopup() {
           // --- OPA WASM evaluation for manual YAML ---
           let opaResults = [];
           try {
-            const stored = localStorage.getItem('opaWasmPolicy');
+            const stored = localStorage.getItem("opaWasmPolicy");
             if (stored) {
               const policy = JSON.parse(stored);
               const wasmBuffer = new Uint8Array(policy.data).buffer;
-              const mod = await import('../lib/opa-wasm-bundle.js');
+              const mod = await import("../lib/opa-wasm-bundle.js");
               const opaWasm = mod.default;
               const opaWasmInstance = await opaWasm.loadPolicy(wasmBuffer);
 
               let inputObj = null;
               try {
-                inputObj = globalThis.jsyaml ? globalThis.jsyaml.load(content) : JSON.parse(content);
+                inputObj = globalThis.jsyaml
+                  ? globalThis.jsyaml.load(content)
+                  : JSON.parse(content);
               } catch (e) {
                 inputObj = null;
               }
@@ -415,24 +481,39 @@ async function initPopup() {
               if (inputObj) {
                 const opaResult = await opaWasmInstance.evaluate(inputObj);
                 if (Array.isArray(opaResult) && opaResult.length) {
-                  const mapped = opaResult.map((r, idx) => {
-                    const base = r && r.result ? r.result : r;
+                  const mapped = opaResult
+                    .map((r, idx) => {
+                      const base = r && r.result ? r.result : r;
 
-                    // Skip entries that clearly indicate no violation (empty array/object)
-                    if (!base) { return null; }
-                    if (Array.isArray(base) && base.length === 0) { return null; }
-                    if (!Array.isArray(base) && typeof base === "object" && Object.keys(base).length === 0) { return null; }
+                      // Skip entries that clearly indicate no violation (empty array/object)
+                      if (!base) {
+                        return null;
+                      }
+                      if (Array.isArray(base) && base.length === 0) {
+                        return null;
+                      }
+                      if (
+                        !Array.isArray(base) &&
+                        typeof base === "object" &&
+                        Object.keys(base).length === 0
+                      ) {
+                        return null;
+                      }
 
-                    const ruleId = base && base.id ? `OPA:${base.id}` : `OPA:${idx+1}`;
-                    const message = base && base.reason ? base.reason : JSON.stringify(base);
-                    const sev = base && typeof base.severity === "string" ? String(base.severity).toLowerCase() : "error";
-                    return {
-                      severity: sev,
-                      ruleId,
-                      message,
-                      source: "OPA WASM"
-                    };
-                  }).filter(Boolean);
+                      const ruleId = base && base.id ? `OPA:${base.id}` : `OPA:${idx + 1}`;
+                      const message = base && base.reason ? base.reason : JSON.stringify(base);
+                      const sev =
+                        base && typeof base.severity === "string"
+                          ? String(base.severity).toLowerCase()
+                          : "error";
+                      return {
+                        severity: sev,
+                        ruleId,
+                        message,
+                        source: "OPA WASM",
+                      };
+                    })
+                    .filter(Boolean);
 
                   if (mapped.length) {
                     opaResults = mapped;
@@ -441,8 +522,15 @@ async function initPopup() {
               }
             }
           } catch (e) {
-            console.error('[OPA WASM] Manual evaluation error:', e);
-            opaResults = [{ severity: "error", ruleId: "OPA", message: "OPA WASM evaluation failed: " + (e && e.message), source: "OPA WASM" }];
+            console.error("[OPA WASM] Manual evaluation error:", e);
+            opaResults = [
+              {
+                severity: "error",
+                ruleId: "OPA",
+                message: "OPA WASM evaluation failed: " + (e && e.message),
+                source: "OPA WASM",
+              },
+            ];
           }
 
           const allResults = [...results, ...opaResults];
@@ -463,13 +551,15 @@ async function initPopup() {
       fetchedNotice.textContent = `Validated file fetched from GitHub: ${fetchedUrl}`;
       fetchedNotice.style.display = "block";
     }
-  // hide the manual block entirely when we fetched the YAML
-  const manualDiv = document.getElementById("manual");
-  if (manualDiv) {
-    manualDiv.style.display = "none";
-    const manualArea = document.getElementById("manualYaml");
-    if (manualArea) {manualArea.style.display = "none";}
-  }
+    // hide the manual block entirely when we fetched the YAML
+    const manualDiv = document.getElementById("manual");
+    if (manualDiv) {
+      manualDiv.style.display = "none";
+      const manualArea = document.getElementById("manualYaml");
+      if (manualArea) {
+        manualArea.style.display = "none";
+      }
+    }
   }
 
   const { customRules } = await storageGet("customRules");
@@ -493,24 +583,24 @@ async function initPopup() {
   let opaWasmError = null;
   let opaWasmPolicyMeta = null;
   try {
-    console.log('[OPA WASM] Attempting to load policy from localStorage...');
-    const stored = localStorage.getItem('opaWasmPolicy');
+    console.log("[OPA WASM] Attempting to load policy from localStorage...");
+    const stored = localStorage.getItem("opaWasmPolicy");
     if (stored) {
-      console.log('[OPA WASM] Policy found in localStorage.');
+      console.log("[OPA WASM] Policy found in localStorage.");
       const policy = JSON.parse(stored);
       opaWasmPolicyMeta = policy;
       const wasmBuffer = new Uint8Array(policy.data).buffer;
-      console.log('[OPA WASM] Importing OPA WASM JS bundle...');
-      const mod = await import('../lib/opa-wasm-bundle.js');
+      console.log("[OPA WASM] Importing OPA WASM JS bundle...");
+      const mod = await import("../lib/opa-wasm-bundle.js");
       const opaWasm = mod.default;
-      console.log('[OPA WASM] Loading policy into OPA WASM runtime...');
+      console.log("[OPA WASM] Loading policy into OPA WASM runtime...");
       opaWasmInstance = await opaWasm.loadPolicy(wasmBuffer);
       opaWasmLoaded = true;
     } else {
-      console.log('[OPA WASM] No policy found in localStorage. Skipping OPA WASM evaluation.');
+      console.log("[OPA WASM] No policy found in localStorage. Skipping OPA WASM evaluation.");
     }
   } catch (err) {
-    console.error('[OPA WASM] Error loading policy:', err);
+    console.error("[OPA WASM] Error loading policy:", err);
     opaWasmError = err;
     opaWasmLoaded = false;
   }
@@ -527,11 +617,15 @@ async function initPopup() {
     let schemaErrorSection = "";
     try {
       if (typeof validateSchemaYaml === "function") {
-        const csData = await new Promise((resolve) => chrome.storage.local.get("clusterSchema", (d) => resolve(d && d.clusterSchema ? d.clusterSchema : { openapis: [], crds: [] })));
+        const csData = await new Promise((resolve) =>
+          chrome.storage.local.get("clusterSchema", (d) =>
+            resolve(d && d.clusterSchema ? d.clusterSchema : { openapis: [], crds: [] })
+          )
+        );
         schemaResults = await validateSchemaYaml(yamlText, csData);
         if (Array.isArray(schemaResults) && schemaResults.length) {
           // Merge schemaResults; avoid duplicating identical messages
-          const existingKeys = new Set(results.map(r => `${r.ruleId}||${r.path}||${r.message}`));
+          const existingKeys = new Set(results.map((r) => `${r.ruleId}||${r.path}||${r.message}`));
           for (const sr of schemaResults) {
             const key = `${sr.ruleId}||${sr.path}||${sr.message}`;
             if (!existingKeys.has(key)) {
@@ -541,7 +635,12 @@ async function initPopup() {
           }
         }
         // Diagnostic: show what schema was matched and summary of results
-        const hasSchemas = !!(csData && ((Array.isArray(csData.openapis) && csData.openapis.length > 0) || (Array.isArray(csData.crds) && csData.crds.length > 0) || csData.openapi));
+        const hasSchemas = !!(
+          csData &&
+          ((Array.isArray(csData.openapis) && csData.openapis.length > 0) ||
+            (Array.isArray(csData.crds) && csData.crds.length > 0) ||
+            csData.openapi)
+        );
         if (schemaResults.length === 0) {
           if (hasSchemas) {
             schemaDiagnostic = "Schema-based validation: no issues found for this resource.";
@@ -549,10 +648,13 @@ async function initPopup() {
             schemaDiagnostic = "No schema present for this resource.";
           }
         } else {
-          const errorCount = schemaResults.filter(r => r.severity === "error").length;
+          const errorCount = schemaResults.filter((r) => r.severity === "error").length;
           schemaDiagnostic = `Schema-based validation: ${schemaResults.length} issue(s), ${errorCount} error(s).`;
           // Show all schema errors in a dedicated section
-          schemaErrorSection = schemaResults.filter(r => r.severity === "error").map(r => `<li><b>${r.path}</b>: ${r.message}</li>`).join("");
+          schemaErrorSection = schemaResults
+            .filter((r) => r.severity === "error")
+            .map((r) => `<li><b>${r.path}</b>: ${r.message}</li>`)
+            .join("");
         }
       } else {
         schemaDiagnostic = "Schema validator not available.";
@@ -595,7 +697,7 @@ async function initPopup() {
   // --- OPA WASM evaluation ---
   if (opaWasmLoaded && opaWasmInstance) {
     try {
-      console.log('[OPA WASM] Evaluation code path reached. Preparing input...');
+      console.log("[OPA WASM] Evaluation code path reached. Preparing input...");
       // OPA expects input as JSON; try to parse YAML as JSON
       let inputObj = null;
       try {
@@ -605,26 +707,41 @@ async function initPopup() {
       }
       if (inputObj) {
         const opaResult = await opaWasmInstance.evaluate(inputObj);
-        console.log('[OPA WASM] Evaluation result:', opaResult);
+        console.log("[OPA WASM] Evaluation result:", opaResult);
         if (Array.isArray(opaResult) && opaResult.length) {
-          const mapped = opaResult.map((r, idx) => {
-            const base = r && r.result ? r.result : r;
+          const mapped = opaResult
+            .map((r, idx) => {
+              const base = r && r.result ? r.result : r;
 
-            // Skip entries that clearly indicate no violation (empty array/object)
-            if (!base) { return null; }
-            if (Array.isArray(base) && base.length === 0) { return null; }
-            if (!Array.isArray(base) && typeof base === "object" && Object.keys(base).length === 0) { return null; }
+              // Skip entries that clearly indicate no violation (empty array/object)
+              if (!base) {
+                return null;
+              }
+              if (Array.isArray(base) && base.length === 0) {
+                return null;
+              }
+              if (
+                !Array.isArray(base) &&
+                typeof base === "object" &&
+                Object.keys(base).length === 0
+              ) {
+                return null;
+              }
 
-            const ruleId = base && base.id ? `OPA:${base.id}` : `OPA:${idx+1}`;
-            const message = base && base.reason ? base.reason : JSON.stringify(base);
-            const sev = base && typeof base.severity === "string" ? String(base.severity).toLowerCase() : "error";
-            return {
-              severity: sev,
-              ruleId,
-              message,
-              source: "OPA WASM"
-            };
-          }).filter(Boolean);
+              const ruleId = base && base.id ? `OPA:${base.id}` : `OPA:${idx + 1}`;
+              const message = base && base.reason ? base.reason : JSON.stringify(base);
+              const sev =
+                base && typeof base.severity === "string"
+                  ? String(base.severity).toLowerCase()
+                  : "error";
+              return {
+                severity: sev,
+                ruleId,
+                message,
+                source: "OPA WASM",
+              };
+            })
+            .filter(Boolean);
 
           if (mapped.length) {
             opaResults = mapped;
@@ -632,11 +749,25 @@ async function initPopup() {
         }
       }
     } catch (e) {
-      console.error('[OPA WASM] Error during evaluation:', e);
-      opaResults = [{ severity: "error", ruleId: "OPA", message: "OPA WASM evaluation failed: " + (e && e.message), source: "OPA WASM" }];
+      console.error("[OPA WASM] Error during evaluation:", e);
+      opaResults = [
+        {
+          severity: "error",
+          ruleId: "OPA",
+          message: "OPA WASM evaluation failed: " + (e && e.message),
+          source: "OPA WASM",
+        },
+      ];
     }
   } else if (opaWasmError) {
-    opaResults = [{ severity: "error", ruleId: "OPA", message: "OPA WASM policy load error: " + (opaWasmError && opaWasmError.message), source: "OPA WASM" }];
+    opaResults = [
+      {
+        severity: "error",
+        ruleId: "OPA",
+        message: "OPA WASM policy load error: " + (opaWasmError && opaWasmError.message),
+        source: "OPA WASM",
+      },
+    ];
   } else {
     // OPA WASM not loaded, so evaluation is skipped
   }
@@ -646,52 +777,64 @@ async function initPopup() {
   results = allResults;
   renderResults(results);
 
-    // If parser produced a parse-error result, show the sanitized YAML text
-    // that was passed to the parser so users can inspect what we validated.
-    if (results && results.some(r => r.ruleId === "parse-error")) {
-      // [popup] parse-error — sanitized YAML used for validation
-      // Create a details block to show the sanitized YAML (if not present)
-      let dbg = document.getElementById("debugYamlDetails");
-      if (!dbg) {
-        dbg = document.createElement("details");
-        dbg.id = "debugYamlDetails";
-        dbg.style.cssText = "margin-top:8px;padding:8px;border:1px solid #eee;background:#fff;max-height:240px;overflow:auto;font-family:monospace;";
-        const summ = document.createElement("summary");
-        summ.textContent = "Sanitized YAML used for validation (click to expand)";
-        dbg.appendChild(summ);
-        const pre = document.createElement("pre");
-        pre.id = "debugYamlPre";
-        pre.style.cssText = "white-space:pre-wrap;word-break:break-word;margin:8px 0;font-size:12px;";
-        dbg.appendChild(pre);
-        // add a small copy button
-        const copyBtnDbg = document.createElement("button");
-        copyBtnDbg.textContent = "Copy sanitized YAML";
-        copyBtnDbg.style.cssText = "margin-top:6px;padding:6px 8px;";
-        copyBtnDbg.addEventListener("click", async () => {
-          try { await navigator.clipboard.writeText(document.getElementById("debugYamlPre").textContent || ""); showToast("Sanitized YAML copied"); } catch (e) { showToast("Copy failed", { background: "#b91c1c" }); }
-        });
-        dbg.appendChild(copyBtnDbg);
-        const container = document.getElementById("summary") || document.body;
-        container.parentNode.insertBefore(dbg, container.nextSibling);
-      }
-      const preEl = document.getElementById("debugYamlPre");
-      if (preEl) {preEl.textContent = yamlText || "";}
+  // If parser produced a parse-error result, show the sanitized YAML text
+  // that was passed to the parser so users can inspect what we validated.
+  if (results && results.some((r) => r.ruleId === "parse-error")) {
+    // [popup] parse-error — sanitized YAML used for validation
+    // Create a details block to show the sanitized YAML (if not present)
+    let dbg = document.getElementById("debugYamlDetails");
+    if (!dbg) {
+      dbg = document.createElement("details");
+      dbg.id = "debugYamlDetails";
+      dbg.style.cssText =
+        "margin-top:8px;padding:8px;border:1px solid #eee;background:#fff;max-height:240px;overflow:auto;font-family:monospace;";
+      const summ = document.createElement("summary");
+      summ.textContent = "Sanitized YAML used for validation (click to expand)";
+      dbg.appendChild(summ);
+      const pre = document.createElement("pre");
+      pre.id = "debugYamlPre";
+      pre.style.cssText = "white-space:pre-wrap;word-break:break-word;margin:8px 0;font-size:12px;";
+      dbg.appendChild(pre);
+      // add a small copy button
+      const copyBtnDbg = document.createElement("button");
+      copyBtnDbg.textContent = "Copy sanitized YAML";
+      copyBtnDbg.style.cssText = "margin-top:6px;padding:6px 8px;";
+      copyBtnDbg.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(
+            document.getElementById("debugYamlPre").textContent || ""
+          );
+          showToast("Sanitized YAML copied");
+        } catch (e) {
+          showToast("Copy failed", { background: "#b91c1c" });
+        }
+      });
+      dbg.appendChild(copyBtnDbg);
+      const container = document.getElementById("summary") || document.body;
+      container.parentNode.insertBefore(dbg, container.nextSibling);
     }
+    const preEl = document.getElementById("debugYamlPre");
+    if (preEl) {
+      preEl.textContent = yamlText || "";
+    }
+  }
   if (results.length === 0) {
-  summary.innerHTML = "✅ No violations found — your YAML meets Guardon checks!";
+    summary.innerHTML = "✅ No violations found — your YAML meets Guardon checks!";
     statusBadge.textContent = "CLEAN";
     statusBadge.className = "status clean";
     statusBadge.style.display = "inline-block";
     // Hide manual input when we have a validated YAML (no need to prompt paste)
     const manualDiv = document.getElementById("manual");
-    if (manualDiv) {manualDiv.style.display = "none";}
+    if (manualDiv) {
+      manualDiv.style.display = "none";
+    }
     return;
   }
 
   // Count by severity
-  const errorCount = results.filter(r => r.severity === "error").length;
-  const warningCount = results.filter(r => r.severity === "warning").length;
-  const infoCount = results.filter(r => r.severity === "info").length;
+  const errorCount = results.filter((r) => r.severity === "error").length;
+  const warningCount = results.filter((r) => r.severity === "warning").length;
+  const infoCount = results.filter((r) => r.severity === "info").length;
 
   let badgeClass = "warning";
   let badgeText = "WARNINGS";
@@ -715,34 +858,39 @@ async function initPopup() {
   `;
 
   resultsBody.innerHTML = "";
-  results.forEach(r => {
+  results.forEach((r) => {
     const tr = document.createElement("tr");
-    const icon = r.severity === "error" ? "❌" : (r.severity === "warning" ? "⚠️" : "ℹ️");
+    const icon = r.severity === "error" ? "❌" : r.severity === "warning" ? "⚠️" : "ℹ️";
     const tdSeverity = document.createElement("td");
     tdSeverity.className = r.severity;
     tdSeverity.innerHTML = `<span class="severity-icon">${icon}</span>${r.severity.toUpperCase()}`;
 
-  const tdRule = document.createElement("td"); tdRule.textContent = r.ruleId;
-  const tdSource = document.createElement("td"); tdSource.textContent = getSourceLabel(r);
-  const tdMessage = document.createElement("td"); setMessageCellContent(tdMessage, r.message);
-  const tdActions = document.createElement("td");
-  tdActions.className = "actions-cell";
+    const tdRule = document.createElement("td");
+    tdRule.textContent = r.ruleId;
+    const tdSource = document.createElement("td");
+    tdSource.textContent = getSourceLabel(r);
+    const tdMessage = document.createElement("td");
+    setMessageCellContent(tdMessage, r.message);
+    const tdActions = document.createElement("td");
+    tdActions.className = "actions-cell";
 
     if (r.suggestion) {
-  const previewBtn = document.createElement("button");
-  previewBtn.type = "button";
-  previewBtn.className = "action-btn icon-btn preview";
-  previewBtn.title = "Preview patch";
-  previewBtn.setAttribute("aria-label", "Preview patch");
-  previewBtn.innerHTML = "🔧";
+      const previewBtn = document.createElement("button");
+      previewBtn.type = "button";
+      previewBtn.className = "action-btn icon-btn preview";
+      previewBtn.title = "Preview patch";
+      previewBtn.setAttribute("aria-label", "Preview patch");
+      previewBtn.innerHTML = "🔧";
       previewBtn.addEventListener("click", async () => {
         if (!previewAvailable) {
           alert("Patch preview not available");
           return;
         }
         try {
-          const patched = await previewPatchedYaml(currentYamlText, r.docIndex, r.suggestion, { fullStream: true });
-          suggestionHint.textContent = r.suggestion.hint || (r.message || "Suggested fix");
+          const patched = await previewPatchedYaml(currentYamlText, r.docIndex, r.suggestion, {
+            fullStream: true,
+          });
+          suggestionHint.textContent = r.suggestion.hint || r.message || "Suggested fix";
           suggestionPre.textContent = patched || "Failed to generate preview";
           suggestionModal.style.display = "flex";
         } catch (e) {
@@ -752,44 +900,57 @@ async function initPopup() {
       });
       tdActions.appendChild(previewBtn);
 
-  const copySnippetBtn = document.createElement("button");
-  copySnippetBtn.type = "button";
-  copySnippetBtn.className = "action-btn icon-btn copy";
-  copySnippetBtn.title = "Copy snippet";
-  copySnippetBtn.setAttribute("aria-label", "Copy snippet");
-  copySnippetBtn.innerHTML = "📋";
+      const copySnippetBtn = document.createElement("button");
+      copySnippetBtn.type = "button";
+      copySnippetBtn.className = "action-btn icon-btn copy";
+      copySnippetBtn.title = "Copy snippet";
+      copySnippetBtn.setAttribute("aria-label", "Copy snippet");
+      copySnippetBtn.innerHTML = "📋";
       copySnippetBtn.addEventListener("click", async () => {
         try {
           const j = globalThis.jsyaml;
           let snippetYaml = "";
-          if (r.suggestion.snippetYaml) {snippetYaml = r.suggestion.snippetYaml;}
-          else if (r.suggestion.snippetObj && j) {snippetYaml = j.dump(r.suggestion.snippetObj, { noRefs: true });}
-          else {snippetYaml = String(r.suggestion.snippetObj || r.suggestion.hint || "");}
+          if (r.suggestion.snippetYaml) {
+            snippetYaml = r.suggestion.snippetYaml;
+          } else if (r.suggestion.snippetObj && j) {
+            snippetYaml = j.dump(r.suggestion.snippetObj, { noRefs: true });
+          } else {
+            snippetYaml = String(r.suggestion.snippetObj || r.suggestion.hint || "");
+          }
           await navigator.clipboard.writeText(snippetYaml);
           showToast("Snippet copied to clipboard");
-        } catch (e) { showToast("Failed to copy snippet", { background: "#b91c1c" }); }
+        } catch (e) {
+          showToast("Failed to copy snippet", { background: "#b91c1c" });
+        }
       });
       tdActions.appendChild(copySnippetBtn);
     }
 
     // Try to find the original rule metadata so we can show an explanation modal
     try {
-      const matched = (rules || []).find(rr => String(rr.id) === String(r.ruleId));
-      if (matched && matched.explain && (matched.explain.rationale || (Array.isArray(matched.explain.refs) && matched.explain.refs.length))) {
-  const explainBtn = document.createElement("button");
-  explainBtn.type = "button";
-  explainBtn.className = "action-btn icon-btn explain";
-  explainBtn.title = "Explain policy (rationale & references)";
-  explainBtn.setAttribute("aria-label", "Explain policy");
-  explainBtn.innerHTML = "ℹ️";
+      const matched = (rules || []).find((rr) => String(rr.id) === String(r.ruleId));
+      if (
+        matched &&
+        matched.explain &&
+        (matched.explain.rationale ||
+          (Array.isArray(matched.explain.refs) && matched.explain.refs.length))
+      ) {
+        const explainBtn = document.createElement("button");
+        explainBtn.type = "button";
+        explainBtn.className = "action-btn icon-btn explain";
+        explainBtn.title = "Explain policy (rationale & references)";
+        explainBtn.setAttribute("aria-label", "Explain policy");
+        explainBtn.innerHTML = "ℹ️";
         explainBtn.addEventListener("click", () => {
-          explainTitle.textContent = matched.description ? `${matched.id} — ${matched.description}` : matched.id;
+          explainTitle.textContent = matched.description
+            ? `${matched.id} — ${matched.description}`
+            : matched.id;
           explainRationale.textContent = matched.explain.rationale || "";
           // render refs as clickable links
           explainRefs.innerHTML = "";
           if (Array.isArray(matched.explain.refs) && matched.explain.refs.length) {
             const ul = document.createElement("ul");
-            matched.explain.refs.forEach(u => {
+            matched.explain.refs.forEach((u) => {
               try {
                 const li = document.createElement("li");
                 const a = document.createElement("a");
@@ -803,11 +964,15 @@ async function initPopup() {
             });
             explainRefs.appendChild(ul);
           }
-          if (explainModal) {explainModal.style.display = "flex";}
+          if (explainModal) {
+            explainModal.style.display = "flex";
+          }
         });
         tdActions.appendChild(explainBtn);
       }
-    } catch (e) { /* Explain button wiring failed */ }
+    } catch (e) {
+      /* Explain button wiring failed */
+    }
 
     tr.appendChild(tdSeverity);
     tr.appendChild(tdRule);
@@ -834,7 +999,7 @@ async function initPopup() {
   // renderResults helper used by manual validation
   function renderResults(results) {
     if (!results || results.length === 0) {
-    summary.innerHTML = "✅ No violations found — your YAML meets Guardon checks!";
+      summary.innerHTML = "✅ No violations found — your YAML meets Guardon checks!";
       statusBadge.textContent = "CLEAN";
       statusBadge.className = "status clean";
       statusBadge.style.display = "inline-block";
@@ -842,12 +1007,15 @@ async function initPopup() {
       copyBtn.style.display = "none";
       return;
     }
-    const errorCount = results.filter(r => r.severity === "error").length;
-    const warningCount = results.filter(r => r.severity === "warning").length;
-    const infoCount = results.filter(r => r.severity === "info").length;
+    const errorCount = results.filter((r) => r.severity === "error").length;
+    const warningCount = results.filter((r) => r.severity === "warning").length;
+    const infoCount = results.filter((r) => r.severity === "info").length;
     let badgeClass = "warning";
     let badgeText = "WARNINGS";
-    if (errorCount > 0) { badgeClass = "error"; badgeText = "ERRORS"; }
+    if (errorCount > 0) {
+      badgeClass = "error";
+      badgeText = "ERRORS";
+    }
     statusBadge.textContent = badgeText;
     statusBadge.className = `status ${badgeClass}`;
     statusBadge.style.display = "inline-block";
@@ -855,105 +1023,127 @@ async function initPopup() {
     copyBtn.style.display = "inline-block";
     summary.innerHTML = `Found <b>${results.length}</b> violation(s): ${errorCount ? "❌ " + errorCount + " error(s)" : ""} ${warningCount ? " ⚠️ " + warningCount + " warning(s)" : ""} ${infoCount ? " ℹ️ " + infoCount + " info(s)" : ""}`;
     resultsBody.innerHTML = "";
-    results.forEach(r => {
-        const tr = document.createElement("tr");
-        const icon = r.severity === "error" ? "❌" : (r.severity === "warning" ? "⚠️" : "ℹ️");
-        const tdSeverity = document.createElement("td");
-        tdSeverity.className = r.severity;
-        tdSeverity.innerHTML = `<span class="severity-icon">${icon}</span>${r.severity.toUpperCase()}`;
+    results.forEach((r) => {
+      const tr = document.createElement("tr");
+      const icon = r.severity === "error" ? "❌" : r.severity === "warning" ? "⚠️" : "ℹ️";
+      const tdSeverity = document.createElement("td");
+      tdSeverity.className = r.severity;
+      tdSeverity.innerHTML = `<span class="severity-icon">${icon}</span>${r.severity.toUpperCase()}`;
 
-    const tdRule = document.createElement("td"); tdRule.textContent = r.ruleId;
-    const tdSource = document.createElement("td"); tdSource.textContent = getSourceLabel(r);
-    const tdMessage = document.createElement("td"); setMessageCellContent(tdMessage, r.message);
+      const tdRule = document.createElement("td");
+      tdRule.textContent = r.ruleId;
+      const tdSource = document.createElement("td");
+      tdSource.textContent = getSourceLabel(r);
+      const tdMessage = document.createElement("td");
+      setMessageCellContent(tdMessage, r.message);
       const tdActions = document.createElement("td");
       tdActions.className = "actions-cell";
 
-        if (r.suggestion) {
-          const previewBtn = document.createElement("button");
-          previewBtn.type = "button";
-          previewBtn.className = "action-btn icon-btn preview";
-          previewBtn.title = "Preview patch";
-          previewBtn.setAttribute("aria-label", "Preview patch");
-          previewBtn.innerHTML = "🔧";
-          previewBtn.addEventListener("click", async () => {
-            if (!previewAvailable) {
-              alert("Patch preview not available");
-              return;
-            }
-            try {
-              const patched = await previewPatchedYaml(currentYamlText, r.docIndex, r.suggestion, { fullStream: true });
-              suggestionHint.textContent = r.suggestion.hint || (r.message || "Suggested fix");
-              suggestionPre.textContent = patched || "Failed to generate preview";
-              suggestionModal.style.display = "flex";
-            } catch (e) {
-              // Preview generation failed
-              alert("Failed to generate patch preview");
-            }
-          });
-          tdActions.appendChild(previewBtn);
-
-          const copySnippetBtn = document.createElement("button");
-          copySnippetBtn.type = "button";
-          copySnippetBtn.className = "action-btn icon-btn copy";
-          copySnippetBtn.title = "Copy snippet";
-          copySnippetBtn.setAttribute("aria-label", "Copy snippet");
-          copySnippetBtn.innerHTML = "📋";
-          copySnippetBtn.addEventListener("click", async () => {
-            try {
-              const j = globalThis.jsyaml;
-              let snippetYaml = "";
-              if (r.suggestion.snippetYaml) {snippetYaml = r.suggestion.snippetYaml;}
-              else if (r.suggestion.snippetObj && j) {snippetYaml = j.dump(r.suggestion.snippetObj, { noRefs: true });}
-              else {snippetYaml = String(r.suggestion.snippetObj || r.suggestion.hint || "");}
-              await navigator.clipboard.writeText(snippetYaml);
-              showToast("Snippet copied to clipboard");
-            } catch (e) { showToast("Failed to copy snippet", { background: "#b91c1c" }); }
-          });
-          tdActions.appendChild(copySnippetBtn);
-        }
-
-        // Explain button (if rule metadata includes explain)
-        try {
-          const matched = (rules || []).find(rr => String(rr.id) === String(r.ruleId));
-          if (matched && matched.explain && (matched.explain.rationale || (Array.isArray(matched.explain.refs) && matched.explain.refs.length))) {
-      const explainBtn = document.createElement("button");
-      explainBtn.type = "button";
-      explainBtn.className = "action-btn icon-btn explain";
-      explainBtn.title = "Explain policy (rationale & references)";
-      explainBtn.setAttribute("aria-label", "Explain policy");
-      explainBtn.innerHTML = "ℹ️";
-            explainBtn.addEventListener("click", () => {
-              explainTitle.textContent = matched.description ? `${matched.id} — ${matched.description}` : matched.id;
-              explainRationale.textContent = matched.explain.rationale || "";
-              explainRefs.innerHTML = "";
-              if (Array.isArray(matched.explain.refs) && matched.explain.refs.length) {
-                const ul = document.createElement("ul");
-                matched.explain.refs.forEach(u => {
-                  try {
-                    const li = document.createElement("li");
-                    const a = document.createElement("a");
-                    a.href = u;
-                    a.textContent = u;
-                    a.target = "_blank";
-                    a.rel = "noopener noreferrer";
-                    li.appendChild(a);
-                    ul.appendChild(li);
-                  } catch (e) {}
-                });
-                explainRefs.appendChild(ul);
-              }
-              if (explainModal) {explainModal.style.display = "flex";}
-            });
-            tdActions.appendChild(explainBtn);
+      if (r.suggestion) {
+        const previewBtn = document.createElement("button");
+        previewBtn.type = "button";
+        previewBtn.className = "action-btn icon-btn preview";
+        previewBtn.title = "Preview patch";
+        previewBtn.setAttribute("aria-label", "Preview patch");
+        previewBtn.innerHTML = "🔧";
+        previewBtn.addEventListener("click", async () => {
+          if (!previewAvailable) {
+            alert("Patch preview not available");
+            return;
           }
-        } catch (e) { /* Explain button wiring failed */ }
+          try {
+            const patched = await previewPatchedYaml(currentYamlText, r.docIndex, r.suggestion, {
+              fullStream: true,
+            });
+            suggestionHint.textContent = r.suggestion.hint || r.message || "Suggested fix";
+            suggestionPre.textContent = patched || "Failed to generate preview";
+            suggestionModal.style.display = "flex";
+          } catch (e) {
+            // Preview generation failed
+            alert("Failed to generate patch preview");
+          }
+        });
+        tdActions.appendChild(previewBtn);
 
-        tr.appendChild(tdSeverity);
-        tr.appendChild(tdRule);
-        tr.appendChild(tdSource);
-        tr.appendChild(tdMessage);
-        tr.appendChild(tdActions);
-        resultsBody.appendChild(tr);
+        const copySnippetBtn = document.createElement("button");
+        copySnippetBtn.type = "button";
+        copySnippetBtn.className = "action-btn icon-btn copy";
+        copySnippetBtn.title = "Copy snippet";
+        copySnippetBtn.setAttribute("aria-label", "Copy snippet");
+        copySnippetBtn.innerHTML = "📋";
+        copySnippetBtn.addEventListener("click", async () => {
+          try {
+            const j = globalThis.jsyaml;
+            let snippetYaml = "";
+            if (r.suggestion.snippetYaml) {
+              snippetYaml = r.suggestion.snippetYaml;
+            } else if (r.suggestion.snippetObj && j) {
+              snippetYaml = j.dump(r.suggestion.snippetObj, { noRefs: true });
+            } else {
+              snippetYaml = String(r.suggestion.snippetObj || r.suggestion.hint || "");
+            }
+            await navigator.clipboard.writeText(snippetYaml);
+            showToast("Snippet copied to clipboard");
+          } catch (e) {
+            showToast("Failed to copy snippet", { background: "#b91c1c" });
+          }
+        });
+        tdActions.appendChild(copySnippetBtn);
+      }
+
+      // Explain button (if rule metadata includes explain)
+      try {
+        const matched = (rules || []).find((rr) => String(rr.id) === String(r.ruleId));
+        if (
+          matched &&
+          matched.explain &&
+          (matched.explain.rationale ||
+            (Array.isArray(matched.explain.refs) && matched.explain.refs.length))
+        ) {
+          const explainBtn = document.createElement("button");
+          explainBtn.type = "button";
+          explainBtn.className = "action-btn icon-btn explain";
+          explainBtn.title = "Explain policy (rationale & references)";
+          explainBtn.setAttribute("aria-label", "Explain policy");
+          explainBtn.innerHTML = "ℹ️";
+          explainBtn.addEventListener("click", () => {
+            explainTitle.textContent = matched.description
+              ? `${matched.id} — ${matched.description}`
+              : matched.id;
+            explainRationale.textContent = matched.explain.rationale || "";
+            explainRefs.innerHTML = "";
+            if (Array.isArray(matched.explain.refs) && matched.explain.refs.length) {
+              const ul = document.createElement("ul");
+              matched.explain.refs.forEach((u) => {
+                try {
+                  const li = document.createElement("li");
+                  const a = document.createElement("a");
+                  a.href = u;
+                  a.textContent = u;
+                  a.target = "_blank";
+                  a.rel = "noopener noreferrer";
+                  li.appendChild(a);
+                  ul.appendChild(li);
+                } catch (e) {}
+              });
+              explainRefs.appendChild(ul);
+            }
+            if (explainModal) {
+              explainModal.style.display = "flex";
+            }
+          });
+          tdActions.appendChild(explainBtn);
+        }
+      } catch (e) {
+        /* Explain button wiring failed */
+      }
+
+      tr.appendChild(tdSeverity);
+      tr.appendChild(tdRule);
+      tr.appendChild(tdSource);
+      tr.appendChild(tdMessage);
+      tr.appendChild(tdActions);
+      resultsBody.appendChild(tr);
     });
   }
   console.log("[Guardon popup] initPopup finished wiring UI");
@@ -964,4 +1154,3 @@ if (document.readyState === "loading") {
 } else {
   initPopup();
 }
-

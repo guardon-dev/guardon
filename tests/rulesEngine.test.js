@@ -20,7 +20,9 @@ describe("rulesEngine utilities", () => {
   });
 
   test("getParentPath", () => {
-    expect(engine.getParentPath("spec.template.spec.containers[0].resources")).toBe("spec.template.spec.containers[0]");
+    expect(engine.getParentPath("spec.template.spec.containers[0].resources")).toBe(
+      "spec.template.spec.containers[0]"
+    );
     expect(engine.getParentPath("metadata.name")).toBe("metadata");
     expect(engine.getParentPath("kind")).toBe("");
   });
@@ -49,7 +51,8 @@ describe("rulesEngine utilities", () => {
   test("applySuggestionToDoc insert/replace/remove", async () => {
     const yaml = "apiVersion: v1\nkind: Pod\nmetadata:\n  name: p\nspec:\n  replicas: 1";
     const jsyaml = await engine.resolveJsYaml();
-    const docs = []; engine.resolveJsYaml; // ensure function exists
+    const docs = [];
+    engine.resolveJsYaml; // ensure function exists
     const parsed = jsyaml.loadAll(yaml, (d) => docs.push(d));
     const doc = docs[0];
     const suggestion = { action: "replace", targetPath: "spec.replicas", snippetObj: 3 };
@@ -61,12 +64,20 @@ describe("rulesEngine utilities", () => {
   });
 
   test("previewPatchedYaml returns patched doc and full stream", async () => {
-    const yaml = "apiVersion: v1\nkind: Pod\nmetadata:\n  name: p\nspec:\n  replicas: 1\n---\napiVersion: v1\nkind: Pod\nmetadata:\n  name: q\nspec:\n  replicas: 2";
+    const yaml =
+      "apiVersion: v1\nkind: Pod\nmetadata:\n  name: p\nspec:\n  replicas: 1\n---\napiVersion: v1\nkind: Pod\nmetadata:\n  name: q\nspec:\n  replicas: 2";
     const suggestion = { action: "replace", targetPath: "spec.replicas", snippetObj: 9 };
-    const patchedSingle = await engine.previewPatchedYaml(yaml, 0, suggestion, { fullStream: false });
+    const patchedSingle = await engine.previewPatchedYaml(yaml, 0, suggestion, {
+      fullStream: false,
+    });
     expect(typeof patchedSingle).toBe("string");
     expect(patchedSingle).toMatch(/replicas: 9/);
-    const patchedFull = await engine.previewPatchedYaml(yaml, 1, { action: "replace", targetPath: "spec.replicas", snippetObj: 7 }, { fullStream: true });
+    const patchedFull = await engine.previewPatchedYaml(
+      yaml,
+      1,
+      { action: "replace", targetPath: "spec.replicas", snippetObj: 7 },
+      { fullStream: true }
+    );
     expect(typeof patchedFull).toBe("string");
     expect(patchedFull).toMatch(/replicas: 7/);
   });
@@ -79,18 +90,42 @@ describe("rulesEngine utilities", () => {
   });
 
   test("validateYaml pattern wildcard and required/kind behavior", async () => {
-    const yaml = "apiVersion: v1\nkind: Pod\nspec:\n  containers:\n    - name: a\n      image: bad-image\n    - name: b\n      image: good-image\n";
+    const yaml =
+      "apiVersion: v1\nkind: Pod\nspec:\n  containers:\n    - name: a\n      image: bad-image\n    - name: b\n      image: good-image\n";
     const rules = [
-      { id: "r1", description: "img bad", match: "spec.containers[*].image", pattern: "bad", severity: "warning", message: "bad image", required: false },
-      { id: "r2", description: "requires resources", match: "spec.containers[*].resources", required: true, severity: "error", message: "missing resources" },
-      { id: "r3", description: "kind filter", match: "metadata.name", pattern: "p", kind: "Pod", severity: "info", message: "kind matched" }
+      {
+        id: "r1",
+        description: "img bad",
+        match: "spec.containers[*].image",
+        pattern: "bad",
+        severity: "warning",
+        message: "bad image",
+        required: false,
+      },
+      {
+        id: "r2",
+        description: "requires resources",
+        match: "spec.containers[*].resources",
+        required: true,
+        severity: "error",
+        message: "missing resources",
+      },
+      {
+        id: "r3",
+        description: "kind filter",
+        match: "metadata.name",
+        pattern: "p",
+        kind: "Pod",
+        severity: "info",
+        message: "kind matched",
+      },
     ];
     const res = await engine.validateYaml(yaml, rules);
     // r1 should fire once for container[0]
-    expect(res.some(r=>r.ruleId==="r1")).toBe(true);
+    expect(res.some((r) => r.ruleId === "r1")).toBe(true);
     // r2 should report missing resources per element (two containers)
-    expect(res.filter(r=>r.ruleId==="r2").length).toBe(2);
+    expect(res.filter((r) => r.ruleId === "r2").length).toBe(2);
     // r3 should not match because metadata.name doesn't exist
-    expect(res.some(r=>r.ruleId==="r3")).toBe(false);
+    expect(res.some((r) => r.ruleId === "r3")).toBe(false);
   });
 });

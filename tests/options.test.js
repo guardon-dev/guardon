@@ -43,10 +43,15 @@ describe("options page behavior", () => {
         local: {
           _store: {},
           get: jest.fn((key, cb) => cb({ customRules: [] })),
-          set: jest.fn((obj, cb) => { global._lastSaved = obj; if (cb) {cb();} })
-        }
+          set: jest.fn((obj, cb) => {
+            global._lastSaved = obj;
+            if (cb) {
+              cb();
+            }
+          }),
+        },
       },
-      runtime: { sendMessage: jest.fn() }
+      runtime: { sendMessage: jest.fn() },
     };
   });
 
@@ -74,7 +79,8 @@ describe("options page behavior", () => {
 
     // Expect chrome.storage.local.set to have been called and stored customRules
     expect(global.chrome.storage.local.set).toHaveBeenCalled();
-    const saved = global._lastSaved && global._lastSaved.customRules && global._lastSaved.customRules[0];
+    const saved =
+      global._lastSaved && global._lastSaved.customRules && global._lastSaved.customRules[0];
     expect(saved).toBeDefined();
     expect(saved.id).toBe("t1");
     expect(saved.explain).toBeDefined();

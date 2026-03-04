@@ -21,7 +21,15 @@ export function exportRules(rules) {
   }
 }
 
-export async function importRules({ importFile, importTextarea, importUrlInput, rules, saveRules, renderTable, importPanelModal }) {
+export async function importRules({
+  importFile,
+  importTextarea,
+  importUrlInput,
+  rules,
+  saveRules,
+  renderTable,
+  importPanelModal,
+}) {
   let importText = "";
   let fileName = "";
   // 1. Try file input
@@ -39,7 +47,9 @@ export async function importRules({ importFile, importTextarea, importUrlInput, 
   } else if (importUrlInput && importUrlInput.value.trim()) {
     try {
       const resp = await fetch(importUrlInput.value.trim());
-      if (!resp.ok) {throw new Error("HTTP " + resp.status);}
+      if (!resp.ok) {
+        throw new Error("HTTP " + resp.status);
+      }
       importText = await resp.text();
       fileName = importUrlInput.value.trim();
     } catch (e) {
@@ -79,7 +89,10 @@ export async function importRules({ importFile, importTextarea, importUrlInput, 
       if (kyvernoConverted && kyvernoConverted.length > 0) {
         // This logic expects a showKyvernoPreview function in the caller's scope
         if (typeof window.showKyvernoPreview === "function") {
-          window.showKyvernoPreview(kyvernoConverted, importText, { source: "import", count: kyvernoConverted.length });
+          window.showKyvernoPreview(kyvernoConverted, importText, {
+            source: "import",
+            count: kyvernoConverted.length,
+          });
         }
         return;
       }
@@ -87,7 +100,12 @@ export async function importRules({ importFile, importTextarea, importUrlInput, 
   }
 
   // If not Kyverno, not valid JSON, and looks like Rego, treat as Rego (Kubernetes filter)
-  const isRego = fileName.endsWith(".rego") || importText.trim().startsWith("package ") || importText.includes("policy.rego") || importText.includes("deny") || importText.includes("allow");
+  const isRego =
+    fileName.endsWith(".rego") ||
+    importText.trim().startsWith("package ") ||
+    importText.includes("policy.rego") ||
+    importText.includes("deny") ||
+    importText.includes("allow");
   if (triedYaml && !kyvernoConverted && isRego) {
     // Kubernetes-related Rego detection (standard patterns)
     // Only allow import if at least one Kubernetes-specific pattern is found
@@ -103,11 +121,14 @@ export async function importRules({ importFile, importTextarea, importUrlInput, 
       /namespace(s)?/i,
       /configmap(s)?/i,
       /secret(s)?/i,
-      /ingress(es)?/i
+      /ingress(es)?/i,
     ];
-    const isK8sRego = k8sPatterns.some(re => re.test(importText));
+    const isK8sRego = k8sPatterns.some((re) => re.test(importText));
     if (!isK8sRego) {
-      showToast("Only Kubernetes-related Rego policies can be imported. This file does not appear to reference Kubernetes resources.", { background: "#b91c1c" });
+      showToast(
+        "Only Kubernetes-related Rego policies can be imported. This file does not appear to reference Kubernetes resources.",
+        { background: "#b91c1c" }
+      );
       return;
     }
     // Treat as plain text, wrap as a rule object
@@ -120,21 +141,31 @@ export async function importRules({ importFile, importTextarea, importUrlInput, 
       required: true,
       severity: "warning",
       message: "Imported OPA/Rego policy",
-      rego: importText
+      rego: importText,
     };
     const importedCount = applyNormalizedRules([regoRule], rules, saveRules, renderTable);
     if (importedCount > 0 && importPanelModal) {
       importPanelModal.style.display = "none";
-      if (importFile) {importFile.value = "";}
-      if (importTextarea) {importTextarea.value = "";}
-      if (importUrlInput) {importUrlInput.value = "";}
+      if (importFile) {
+        importFile.value = "";
+      }
+      if (importTextarea) {
+        importTextarea.value = "";
+      }
+      if (importUrlInput) {
+        importUrlInput.value = "";
+      }
     }
     showToast("Imported Rego policy", { background: "#059669" });
     return;
   }
 
   // Accept either an array of rules or { customRules: [...] }
-  let rulesArr = Array.isArray(data) ? data : (Array.isArray(data.customRules) ? data.customRules : null);
+  let rulesArr = Array.isArray(data)
+    ? data
+    : Array.isArray(data.customRules)
+      ? data.customRules
+      : null;
   if (!rulesArr) {
     showToast("JSON must be an array or { customRules: [...] }", { background: "#b91c1c" });
     return;
@@ -142,8 +173,14 @@ export async function importRules({ importFile, importTextarea, importUrlInput, 
   const importedCount = applyNormalizedRules(rulesArr, rules, saveRules, renderTable);
   if (importedCount > 0 && importPanelModal) {
     importPanelModal.style.display = "none";
-    if (importFile) {importFile.value = "";}
-    if (importTextarea) {importTextarea.value = "";}
-    if (importUrlInput) {importUrlInput.value = "";}
+    if (importFile) {
+      importFile.value = "";
+    }
+    if (importTextarea) {
+      importTextarea.value = "";
+    }
+    if (importUrlInput) {
+      importUrlInput.value = "";
+    }
   }
 }

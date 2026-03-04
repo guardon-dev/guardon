@@ -1,8 +1,10 @@
-// ESLint v9+ config for Guardon project
-/** @type {import('eslint').Linter.FlatConfig} */
+// ESLint v9+ flat config for Guardon project
+import prettierConfig from "eslint-config-prettier";
+
+/** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
   {
-    files: ["**/*.{js,cjs,mjs,jsx,ts,tsx}", "!node_modules/**"],
+    files: ["**/*.{js,cjs,mjs,jsx,ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: "module",
@@ -49,39 +51,38 @@ export default [
         beforeEach: "readonly",
         afterAll: "readonly",
         afterEach: "readonly",
-        global: "readonly"
+        global: "readonly",
 
-        // Project-specific helpers
-        ,form: "readonly",
+        // Project-specific helpers exposed as globals in HTML pages
+        form: "readonly",
         showToast: "readonly",
         editRule: "readonly",
         deleteRule: "readonly",
         openAPIPreviewBtn: "readonly",
-        pi: "readonly"
-      }
+        pi: "readonly",
+      },
     },
     linterOptions: {
-      reportUnusedDisableDirectives: true
+      reportUnusedDisableDirectives: true,
     },
     rules: {
+      // Code-quality rules (enforced by ESLint)
       "no-unused-vars": "warn",
       "no-undef": "error",
       "no-console": "warn",
-      // Keep style rules as warnings so linting doesn't fail the build
-      // while still surfacing issues in editors.
       eqeqeq: "warn",
       curly: "warn",
-      semi: ["warn", "always"],
-      quotes: ["warn", "double"]
-    }
+    },
   },
+  // Disable all ESLint formatting rules that Prettier will handle
+  prettierConfig,
   {
     ignores: [
       "node_modules/**",
       "dist/**",
       "coverage/**",
       "guardon-v0.4/**",
-      "src/lib/**"
-    ]
-  }
+      "src/lib/**",
+    ],
+  },
 ];

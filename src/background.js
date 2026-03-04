@@ -6,7 +6,9 @@ chrome.runtime.onInstalled.addListener(() => {
 // extension service worker (bypasses page CORS limitations when host
 // permissions are granted in the manifest).
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (!msg || msg.type !== "FETCH_RAW" || !msg.url) {return;}
+  if (!msg || msg.type !== "FETCH_RAW" || !msg.url) {
+    return;
+  }
   (async () => {
     try {
       const resp = await fetch(msg.url);

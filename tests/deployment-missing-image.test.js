@@ -46,28 +46,30 @@ const minimalOpenAPI = {
                           properties: {
                             name: { type: "string" },
                             image: { type: "string" },
-                            command: { type: "array" }
+                            command: { type: "array" },
                           },
-                          required: ["image"]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+                          required: ["image"],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 test("Deployment missing container image should be reported", async () => {
   const clusterSchema = { openapis: [minimalOpenAPI] };
   const results = await validateYamlAgainstClusterSchemas(deploymentYaml, clusterSchema);
   // Expect at least one schema validation error pointing to containers[].image
-  const hasMissingImage = results.some(r => r.path && r.path.includes("containers") && r.path.includes("image"));
+  const hasMissingImage = results.some(
+    (r) => r.path && r.path.includes("containers") && r.path.includes("image")
+  );
   if (!hasMissingImage) {
     // Validator results: (output suppressed)
   }

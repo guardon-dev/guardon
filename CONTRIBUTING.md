@@ -15,8 +15,9 @@ Thanks for your interest in contributing! Guardon is built by developers, for de
 ## 🎯 How Your Contributions Make a Difference
 
 Every contribution helps developers worldwide write more secure Kubernetes manifests:
+
 - **New security rules** → Prevent production incidents
-- **UX improvements** → Make security checks effortless  
+- **UX improvements** → Make security checks effortless
 - **Bug fixes** → Keep the extension reliable
 - **Documentation** → Help others contribute and use Guardon effectively
 
@@ -33,11 +34,11 @@ Every contribution helps developers worldwide write more secure Kubernetes manif
 
 ## 🏷️ Find Your Perfect Issue
 
-| 🟢 **Beginner** | 🟡 **Intermediate** | 🔴 **Advanced** |
-|-----------------|---------------------|-----------------|
-| Add security rules | Refactor components | Build integrations |
-| Fix documentation | Improve UX/UI | Add platform support |
-| Write tests | Performance optimization | Architecture changes |
+| 🟢 **Beginner**    | 🟡 **Intermediate**      | 🔴 **Advanced**      |
+| ------------------ | ------------------------ | -------------------- |
+| Add security rules | Refactor components      | Build integrations   |
+| Fix documentation  | Improve UX/UI            | Add platform support |
+| Write tests        | Performance optimization | Architecture changes |
 
 **🎁 Bonus:** First-time contributors get a special mention in our release notes!
 
@@ -46,7 +47,7 @@ Every contribution helps developers worldwide write more secure Kubernetes manif
 **Great bug reports save everyone time!** Include:
 
 - **🎯 Clear reproduction steps** — Help us reproduce the issue quickly
-- **📱 Environment details** — Browser version, OS, extension version  
+- **📱 Environment details** — Browser version, OS, extension version
 - **📋 YAML examples** — Minimal examples that trigger the bug
 - **🔍 Console logs** — Open DevTools for the popup and paste relevant errors
 - **💡 Expected vs actual behavior** — What should have happened?
@@ -63,8 +64,9 @@ We love feature requests that:
 - **⚡ Focus on impact** — How does this make Guardon better for everyone?
 
 **🌟 Most requested features:**
+
 - VS Code integration
-- GitLab/Bitbucket support  
+- GitLab/Bitbucket support
 - Custom rule templates
 - Performance monitoring
 
@@ -75,7 +77,7 @@ We love feature requests that:
 git clone https://github.com/[your-username]/guardon.git
 cd guardon
 
-# 2. Create your feature branch  
+# 2. Create your feature branch
 git checkout -b feature/amazing-new-feature
 
 # 3. Set up development environment
@@ -94,17 +96,56 @@ git push origin feature/amazing-new-feature
 ```
 
 **🎯 Development tips:**
+
 - **Hot reload**: Changes to popup/options reload automatically
 - **Debugging**: Right-click extension icon → "Inspect popup" for DevTools
 - **Testing**: Focus on `src/utils/` modules where most logic lives
 
 ## Code Quality and Linting
 
-Guardon uses [ESLint](https://eslint.org/) to check for code quality errors and common mistakes in all JavaScript files. Please run ESLint before submitting a pull request:
+Guardon uses [ESLint](https://eslint.org/) for code quality checks and [Prettier](https://prettier.io/) for consistent code formatting. Both are configured and ready to use via npm scripts.
 
+### Available commands
+
+| Command                | Description                                    |
+| ---------------------- | ---------------------------------------------- |
+| `npm run lint`         | Check all JS files for linting issues          |
+| `npm run lint:fix`     | Auto-fix linting issues where possible         |
+| `npm run format`       | Format all source and test files with Prettier |
+| `npm run format:check` | Check formatting without writing changes       |
+
+**Please run both linting and formatting checks before submitting a pull request:**
+
+```bash
+npm run lint
+npm run format:check
 ```
-npx eslint .
+
+To automatically fix issues:
+
+```bash
+npm run lint:fix
+npm run format
 ```
+
+### Configuration files
+
+| File                    | Purpose                                                                    |
+| ----------------------- | -------------------------------------------------------------------------- |
+| `eslint.config.js`      | ESLint v9 flat config — code quality rules                                 |
+| `.prettierrc`           | Prettier formatting rules (double quotes, semicolons, 100-char line width) |
+| `.vscode/settings.json` | VS Code workspace settings — auto-format on save                           |
+
+### VS Code integration
+
+If you use VS Code, install the [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extensions. The workspace settings in `.vscode/settings.json` will automatically format files on save and apply ESLint fixes.
+
+### Warning policy
+
+All pull requests are reviewed for warnings. The project uses `"warn"` severity for `no-unused-vars` and `no-console` to surface issues without blocking builds. Contributors should:
+
+- Fix warnings where practical.
+- Use `// eslint-disable-next-line <rule> -- <reason>` with a comment explaining why, when suppressing a false positive.
 
 All major changes should include new or updated tests. See the ROADMAP.md for our commitment to test coverage.
 
@@ -119,6 +160,7 @@ It is suggested that static source code analysis (ESLint) be run on every commit
 ## Warning Policy
 
 Guardon is committed to addressing all warnings identified by ESLint and other code quality tools. Contributors should:
+
 - Fix all warnings where possible.
 - If a warning is a false positive, mark it in the source code with a comment (e.g., `// eslint-disable-next-line` with an explanation).
 - Strive for zero warnings, but the project may accept a small number (less than 1 per 100 lines or less than 10 total) if justified.
@@ -138,19 +180,22 @@ All pushes and pull requests to the `main` branch automatically trigger a GitHub
 **What makes a PR mergeable:**
 
 ✅ **The Good Stuff:**
+
 - 🎯 **Focused scope** — One feature/fix per PR
-- 🧪 **Tests included** — Cover new behavior and edge cases  
+- 🧪 **Tests included** — Cover new behavior and edge cases
 - 📝 **Clear description** — What, why, and how
 - 💬 **Descriptive commits** — Future you will thank present you
 - 🔍 **Self-review** — Check your own code first
 
 ✅ **Bonus points:**
+
 - 📚 **Documentation updates** if you change user-facing behavior
 - 🖼️ **Screenshots/GIFs** for UI changes
 - ⚡ **Performance considerations** noted
 - 🛡️ **Security implications** addressed
 
 **🚀 Fast-track to approval:**
+
 - Reference the issue you're fixing
 - Add "Fixes #123" to auto-close issues
 - Keep PRs under 400 lines when possible
@@ -177,12 +222,14 @@ This project uses the Developer Certificate of Origin (DCO) to ensure all contri
 ## 🧪 Testing Made Easy
 
 **Run the full test suite:**
+
 ```bash
 npm install    # One-time setup
 npm test       # Run all tests with coverage
 ```
 
 **Testing philosophy:**
+
 - 🎯 **Focus on utilities** — Most tests are in `src/utils/` modules
 - 🔧 **Test behavior, not implementation** — What should happen, not how
 - 🐛 **Cover edge cases** — Malformed YAML, missing fields, etc.
@@ -193,11 +240,13 @@ npm test       # Run all tests with coverage
 ## 🎨 Repository Assets & Documentation
 
 **Architecture diagrams:**
+
 - Edit `assets/architecture-diagram.svg` for conceptual changes
 - PNG is auto-generated from SVG via GitHub Actions
 - Include updated diagrams in PRs when changing architecture
 
 **Documentation updates:**
+
 - 📝 README changes for user-facing features
 - 🔧 Update copilot-instructions.md for new development patterns
 - 📚 Add JSDoc comments for complex functions
@@ -208,22 +257,23 @@ npm test       # Run all tests with coverage
 
 **Earn recognition for your contributions! We celebrate every milestone:**
 
-| Badge | Achievement | How to Earn |
-|-------|------------|-------------|
-| � **First Timer** | Your first merged PR | Submit and get your first pull request merged |
-| 🐛 **Bug Hunter** | Fixed a confirmed bug | Submit a PR that fixes a reported bug |
-| 🔒 **Security Champion** | Added security rules | Contribute new security rules or improve existing ones |
-| 🎨 **UX Enhancer** | Improved user experience | Make UI/UX improvements that users love |
-| 🧪 **Test Master** | Boosted test coverage | Add comprehensive tests that improve coverage |
-| 📚 **Documentation Hero** | Enhanced documentation | Improve docs, guides, or help materials |
-| 🤖 **AI Pioneer** | Built AI features | Contribute to AI-powered functionality |
-| 🏗️ **Architecture Architect** | Made structural improvements | Refactor code or improve system design |
-| 💎 **Code Quality Guardian** | Improved code standards | Add linting, formatting, or quality improvements |
-| 🚀 **Performance Optimizer** | Enhanced performance | Make measurable performance improvements |
-| 🌍 **Platform Expander** | Added platform support | Extend support to new platforms (GitLab, VS Code, etc.) |
-| 👑 **Top Contributor** | 10+ merged PRs | Achieve 10 or more merged contributions |
+| Badge                         | Achievement                  | How to Earn                                             |
+| ----------------------------- | ---------------------------- | ------------------------------------------------------- |
+| � **First Timer**             | Your first merged PR         | Submit and get your first pull request merged           |
+| 🐛 **Bug Hunter**             | Fixed a confirmed bug        | Submit a PR that fixes a reported bug                   |
+| 🔒 **Security Champion**      | Added security rules         | Contribute new security rules or improve existing ones  |
+| 🎨 **UX Enhancer**            | Improved user experience     | Make UI/UX improvements that users love                 |
+| 🧪 **Test Master**            | Boosted test coverage        | Add comprehensive tests that improve coverage           |
+| 📚 **Documentation Hero**     | Enhanced documentation       | Improve docs, guides, or help materials                 |
+| 🤖 **AI Pioneer**             | Built AI features            | Contribute to AI-powered functionality                  |
+| 🏗️ **Architecture Architect** | Made structural improvements | Refactor code or improve system design                  |
+| 💎 **Code Quality Guardian**  | Improved code standards      | Add linting, formatting, or quality improvements        |
+| 🚀 **Performance Optimizer**  | Enhanced performance         | Make measurable performance improvements                |
+| 🌍 **Platform Expander**      | Added platform support       | Extend support to new platforms (GitLab, VS Code, etc.) |
+| 👑 **Top Contributor**        | 10+ merged PRs               | Achieve 10 or more merged contributions                 |
 
 **🎖️ Special Recognition:**
+
 - **⭐ Monthly MVP**: Most impactful contributor each month
 - **🏆 Annual Champion**: Outstanding contributions throughout the year
 - **🎯 Problem Solver**: Tackle and solve complex, long-standing issues
@@ -232,34 +282,40 @@ npm test       # Run all tests with coverage
 ### 🎁 **Contributor Rewards**
 
 **📜 GitHub Profile Features:**
+
 - ✅ **README Hall of Fame** with your GitHub profile and contributions
 - 🔗 **Personal project links** in our contributor showcase
 - 📊 **Contribution stats** highlighting your impact
 
 **📢 Social Media Shoutouts:**
+
 - 🐦 **Twitter features** celebrating your contributions
 - 💼 **LinkedIn endorsements** for your open source work
 - 📝 **Blog post features** about significant contributions
 
 **🎯 Career Benefits:**
+
 - 📋 **Recommendation letters** for outstanding contributors
 - 🗣️ **Conference talk opportunities** about your Guardon work
 - 🤝 **Professional references** from project maintainers
 - 🎤 **Podcast appearances** discussing your contributions
 
 **🏢 Maintainer Track:**
+
 - 👥 **Maintainer nomination** for consistent, high-quality contributions
 - 🔑 **Repository access** and decision-making responsibilities
 - 🎯 **Project direction input** on roadmap and feature priorities
 - 📅 **Community leadership** opportunities
 
 **🎁 Bonus perks:**
-- 🏆 **Release notes mention** — Credit in release announcements  
-- 📝 **Release notes mention** — Credit in release announcements  
+
+- 🏆 **Release notes mention** — Credit in release announcements
+- 📝 **Release notes mention** — Credit in release announcements
 - 🎁 **Maintainer nomination** — Active contributors can become maintainers
 - 📢 **Social media shoutouts** — We love promoting our contributors!
 
 **💬 Get support:**
+
 - 💭 [GitHub Discussions](https://github.com/guardon-dev/guardon/discussions) for questions
 - 🐛 [Issues](https://github.com/guardon-dev/guardon/issues) for bugs and features
 - 📧 Email maintainers for security issues
@@ -288,6 +344,7 @@ It is **suggested** that at least one dynamic analysis tool be applied to any pr
 - Dynamic analysis tools may focus on security vulnerabilities, but this is not required.
 
 **Contributors:** If you are preparing a major production release, please:
+
 - Propose or run a dynamic analysis tool appropriate for the codebase (e.g., fuzzing, web scanning, or high-coverage automated tests).
 - Document the tool(s) used and summarize findings in the release notes or pull request.
 - Reference the [Wikipedia page on dynamic analysis](https://en.wikipedia.org/wiki/Dynamic_program_analysis) and [OWASP fuzzing guide](https://owasp.org/www-community/Fuzzing) for more information and tool options.

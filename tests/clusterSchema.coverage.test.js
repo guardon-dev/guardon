@@ -1,7 +1,7 @@
 const {
   parseSchemaText,
   validateYamlAgainstClusterSchemas,
-  validateResourceAgainstClusterSchemas
+  validateResourceAgainstClusterSchemas,
 } = require("../src/utils/clusterSchema.js");
 
 describe("clusterSchema uncovered lines", () => {

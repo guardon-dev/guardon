@@ -3,7 +3,9 @@
 // (extension content script, popup module, Node tests).
 
 async function resolveJsYaml() {
-  if (typeof globalThis !== "undefined" && globalThis.jsyaml) {return globalThis.jsyaml;}
+  if (typeof globalThis !== "undefined" && globalThis.jsyaml) {
+    return globalThis.jsyaml;
+  }
 
   // In extension/content-script environments prefer a UMD bundle injected
   // by the manifest (content_scripts). If it's not present, don't attempt to
@@ -24,19 +26,27 @@ async function resolveJsYaml() {
 
 function _get(obj, path) {
   try {
-    if (!path) {return obj;}
+    if (!path) {
+      return obj;
+    }
     const parts = path.split(".");
     let cur = obj;
     for (let part of parts) {
       // support simple array index like items[0]
       const m = part.match(/([a-zA-Z0-9_\-]+)(?:\[(\d+)\])?/);
-      if (!m) {return undefined;}
+      if (!m) {
+        return undefined;
+      }
       const key = m[1];
       const idx = m[2] !== undefined ? parseInt(m[2], 10) : null;
-      if (cur === null || typeof cur !== "object" || !(key in cur)) {return undefined;}
+      if (cur === null || typeof cur !== "object" || !(key in cur)) {
+        return undefined;
+      }
       cur = cur[key];
       if (idx !== null) {
-        if (!Array.isArray(cur)) {return undefined;}
+        if (!Array.isArray(cur)) {
+          return undefined;
+        }
         cur = cur[idx];
       }
     }
@@ -64,9 +74,13 @@ function _has(obj, path) {
 //  - 'metadata.name' -> 'metadata'
 //  - 'kind' -> '' (no parent)
 function getParentPath(path) {
-  if (!path) {return "";}
+  if (!path) {
+    return "";
+  }
   const parts = path.split(".");
-  if (parts.length <= 1) {return "";}
+  if (parts.length <= 1) {
+    return "";
+  }
   return parts.slice(0, -1).join(".");
 }
 
@@ -74,8 +88,12 @@ export async function validateYaml(yamlText, rules) {
   const jsyaml = await resolveJsYaml();
   // Defensive: ensure yamlText is a string. js-yaml calls `input.split(...)`
   // internally and will throw if passed `undefined`.
-  if (yamlText === null) {yamlText = "";}
-  if (typeof yamlText !== "string") {yamlText = String(yamlText);}
+  if (yamlText === null) {
+    yamlText = "";
+  }
+  if (typeof yamlText !== "string") {
+    yamlText = String(yamlText);
+  }
 
   let docs = [];
   try {
@@ -89,13 +107,19 @@ export async function validateYaml(yamlText, rules) {
       severity: "error",
       message: "Invalid YAML: " + (err && err.message ? err.message : String(err)),
     };
-    if (err && err.mark && (typeof err.mark.line === "number" || typeof err.mark.column === "number")) {
+    if (
+      err &&
+      err.mark &&
+      (typeof err.mark.line === "number" || typeof err.mark.column === "number")
+    ) {
       parseErr.mark = { line: err.mark.line, column: err.mark.column };
     }
     return [parseErr];
   }
 
-  if (!docs || docs.length === 0) {return [];}
+  if (!docs || docs.length === 0) {
+    return [];
+  }
 
   const results = [];
 
@@ -104,7 +128,9 @@ export async function validateYaml(yamlText, rules) {
     const doc = docs[docIndex];
     for (const rule of rules) {
       // Skip disabled rules (temporary disable feature)
-      if (rule && rule.enabled === false) {continue;}
+      if (rule && rule.enabled === false) {
+        continue;
+      }
       // Guard each rule evaluation so a missing intermediate path or
       // unexpected structure doesn't throw and break validation for the
       // entire document. If a rule cannot be evaluated we treat it as
@@ -120,9 +146,9 @@ export async function validateYaml(yamlText, rules) {
         if (rule.kind) {
           const allowed = String(rule.kind)
             .split(",")
-            .map(s => s.trim())
+            .map((s) => s.trim())
             .filter(Boolean)
-            .map(s => s.toLowerCase());
+            .map((s) => s.toLowerCase());
           if (allowed.length > 0) {
             const docKind = _get(doc, "kind");
             if (docKind === null) {
@@ -151,14 +177,21 @@ export async function validateYaml(yamlText, rules) {
                 for (let i = 0; i < parentVal.length; i++) {
                   const elemPath = `${basePath}[${i}]${remainder}`;
                   const elemVal = _get(doc, elemPath);
-                  if (typeof elemVal !== "string") {continue;}
+                  if (typeof elemVal !== "string") {
+                    continue;
+                  }
 
                   // If rule specifies a siblingProperty condition, evaluate it
                   if (rule.siblingProperty && rule.siblingValue !== undefined) {
                     const lastDot = elemPath.lastIndexOf(".");
-                    const siblingPath = lastDot !== -1 ? `${elemPath.substring(0, lastDot + 1)}${rule.siblingProperty}` : `${rule.siblingProperty}`;
+                    const siblingPath =
+                      lastDot !== -1
+                        ? `${elemPath.substring(0, lastDot + 1)}${rule.siblingProperty}`
+                        : `${rule.siblingProperty}`;
                     const sibVal = _get(doc, siblingPath);
-                    if (sibVal === null || String(sibVal) !== String(rule.siblingValue)) {continue;}
+                    if (sibVal === null || String(sibVal) !== String(rule.siblingValue)) {
+                      continue;
+                    }
                   }
 
                   let re;
@@ -183,7 +216,9 @@ export async function validateYaml(yamlText, rules) {
                         suggested.action = rule.fix.action || "insert";
                         suggested.targetPath = elemPath;
                         // prefer structured value; fallback to raw fix.value
-                        if (rule.fix.value !== undefined) {suggested.snippetObj = rule.fix.value;}
+                        if (rule.fix.value !== undefined) {
+                          suggested.snippetObj = rule.fix.value;
+                        }
                         suggested.hint = rule.fix.hint || "";
                         res.suggestion = suggested;
                       } catch (e) {}
@@ -198,20 +233,46 @@ export async function validateYaml(yamlText, rules) {
                 if (typeof elemVal === "string") {
                   if (rule.siblingProperty && rule.siblingValue !== undefined) {
                     const lastDot = elemPath.lastIndexOf(".");
-                    const siblingPath = lastDot !== -1 ? `${elemPath.substring(0, lastDot + 1)}${rule.siblingProperty}` : `${rule.siblingProperty}`;
+                    const siblingPath =
+                      lastDot !== -1
+                        ? `${elemPath.substring(0, lastDot + 1)}${rule.siblingProperty}`
+                        : `${rule.siblingProperty}`;
                     const sibVal = _get(doc, siblingPath);
                     if (sibVal === null || String(sibVal) !== String(rule.siblingValue)) {
                       // skip
                     } else {
                       let re2;
-                      try { re2 = new RegExp(rule.pattern); } catch (e) { continue; }
+                      try {
+                        re2 = new RegExp(rule.pattern);
+                      } catch (e) {
+                        continue;
+                      }
                       if (re2.test(elemVal)) {
-                        results.push({ ruleId: rule.id, severity: rule.severity, message: rule.message || rule.description, path: elemPath, docIndex });
+                        results.push({
+                          ruleId: rule.id,
+                          severity: rule.severity,
+                          message: rule.message || rule.description,
+                          path: elemPath,
+                          docIndex,
+                        });
                       }
                     }
                   } else {
-                    let re2; try { re2 = new RegExp(rule.pattern); } catch (e) { continue; }
-                    if (re2.test(elemVal)) {results.push({ ruleId: rule.id, severity: rule.severity, message: rule.message || rule.description, path: elemPath, docIndex });}
+                    let re2;
+                    try {
+                      re2 = new RegExp(rule.pattern);
+                    } catch (e) {
+                      continue;
+                    }
+                    if (re2.test(elemVal)) {
+                      results.push({
+                        ruleId: rule.id,
+                        severity: rule.severity,
+                        message: rule.message || rule.description,
+                        path: elemPath,
+                        docIndex,
+                      });
+                    }
                   }
                 }
               }
@@ -223,18 +284,38 @@ export async function validateYaml(yamlText, rules) {
                 // siblingProperty handling for non-wildcard: compute sibling path
                 if (rule.siblingProperty && rule.siblingValue !== undefined) {
                   const lastDot = matchPath.lastIndexOf(".");
-                  const siblingPath = lastDot !== -1 ? `${matchPath.substring(0, lastDot + 1)}${rule.siblingProperty}` : `${rule.siblingProperty}`;
+                  const siblingPath =
+                    lastDot !== -1
+                      ? `${matchPath.substring(0, lastDot + 1)}${rule.siblingProperty}`
+                      : `${rule.siblingProperty}`;
                   const sibVal = _get(doc, siblingPath);
                   if (sibVal === null || String(sibVal) !== String(rule.siblingValue)) {
                     // skip
                   } else {
-                    let re3; try { re3 = new RegExp(rule.pattern); } catch (e) { re3 = null; }
+                    let re3;
+                    try {
+                      re3 = new RegExp(rule.pattern);
+                    } catch (e) {
+                      re3 = null;
+                    }
                     if (re3 && re3.test(valueForPattern)) {
-                      const res = { ruleId: rule.id, severity: rule.severity, message: rule.message || rule.description, path: rule.match, docIndex };
+                      const res = {
+                        ruleId: rule.id,
+                        severity: rule.severity,
+                        message: rule.message || rule.description,
+                        path: rule.match,
+                        docIndex,
+                      };
                       if (rule && rule.fix) {
                         try {
-                          const suggested = { action: rule.fix.action || "replace", targetPath: matchPath, hint: rule.fix.hint || "" };
-                          if (rule.fix.value !== undefined) {suggested.snippetObj = rule.fix.value;}
+                          const suggested = {
+                            action: rule.fix.action || "replace",
+                            targetPath: matchPath,
+                            hint: rule.fix.hint || "",
+                          };
+                          if (rule.fix.value !== undefined) {
+                            suggested.snippetObj = rule.fix.value;
+                          }
                           res.suggestion = suggested;
                         } catch (e) {}
                       }
@@ -242,13 +323,30 @@ export async function validateYaml(yamlText, rules) {
                     }
                   }
                 } else {
-                  let re3; try { re3 = new RegExp(rule.pattern); } catch (e) { re3 = null; }
+                  let re3;
+                  try {
+                    re3 = new RegExp(rule.pattern);
+                  } catch (e) {
+                    re3 = null;
+                  }
                   if (re3 && re3.test(valueForPattern)) {
-                    const res = { ruleId: rule.id, severity: rule.severity, message: rule.message || rule.description, path: rule.match, docIndex };
+                    const res = {
+                      ruleId: rule.id,
+                      severity: rule.severity,
+                      message: rule.message || rule.description,
+                      path: rule.match,
+                      docIndex,
+                    };
                     if (rule && rule.fix) {
                       try {
-                        const suggested = { action: rule.fix.action || "replace", targetPath: matchPath, hint: rule.fix.hint || "" };
-                        if (rule.fix.value !== undefined) {suggested.snippetObj = rule.fix.value;}
+                        const suggested = {
+                          action: rule.fix.action || "replace",
+                          targetPath: matchPath,
+                          hint: rule.fix.hint || "",
+                        };
+                        if (rule.fix.value !== undefined) {
+                          suggested.snippetObj = rule.fix.value;
+                        }
                         res.suggestion = suggested;
                       } catch (e) {}
                     }
@@ -296,8 +394,14 @@ export async function validateYaml(yamlText, rules) {
                   };
                   if (rule && rule.fix) {
                     try {
-                      const suggested = { action: rule.fix.action || "insert", targetPath: elemPath, hint: rule.fix.hint || "" };
-                      if (rule.fix.value !== undefined) {suggested.snippetObj = rule.fix.value;}
+                      const suggested = {
+                        action: rule.fix.action || "insert",
+                        targetPath: elemPath,
+                        hint: rule.fix.hint || "",
+                      };
+                      if (rule.fix.value !== undefined) {
+                        suggested.snippetObj = rule.fix.value;
+                      }
                       res.suggestion = suggested;
                     } catch (e) {}
                   }
@@ -320,8 +424,14 @@ export async function validateYaml(yamlText, rules) {
                 };
                 if (rule && rule.fix) {
                   try {
-                    const suggested = { action: rule.fix.action || "insert", targetPath: elemPath, hint: rule.fix.hint || "" };
-                    if (rule.fix.value !== undefined) {suggested.snippetObj = rule.fix.value;}
+                    const suggested = {
+                      action: rule.fix.action || "insert",
+                      targetPath: elemPath,
+                      hint: rule.fix.hint || "",
+                    };
+                    if (rule.fix.value !== undefined) {
+                      suggested.snippetObj = rule.fix.value;
+                    }
                     res.suggestion = suggested;
                   } catch (e) {}
                 }
@@ -345,8 +455,14 @@ export async function validateYaml(yamlText, rules) {
               };
               if (rule && rule.fix) {
                 try {
-                  const suggested = { action: rule.fix.action || "insert", targetPath: matchPath, hint: rule.fix.hint || "" };
-                  if (rule.fix.value !== undefined) {suggested.snippetObj = rule.fix.value;}
+                  const suggested = {
+                    action: rule.fix.action || "insert",
+                    targetPath: matchPath,
+                    hint: rule.fix.hint || "",
+                  };
+                  if (rule.fix.value !== undefined) {
+                    suggested.snippetObj = rule.fix.value;
+                  }
                   res.suggestion = suggested;
                 } catch (e) {}
               }
@@ -367,22 +483,30 @@ export async function validateYaml(yamlText, rules) {
 // Attempt to find a path string (dot/array notation) in `obj` whose leaf
 // value equals or contains `target`. Returns the first matching path or null.
 function findPathByValue(obj, target) {
-  if (target === null) {return null;}
+  if (target === null) {
+    return null;
+  }
   const visited = new WeakSet();
 
   function helper(cur, path) {
     if (cur && typeof cur === "object") {
-      if (visited.has(cur)) {return null;}
+      if (visited.has(cur)) {
+        return null;
+      }
       visited.add(cur);
       if (Array.isArray(cur)) {
         for (let i = 0; i < cur.length; i++) {
           const p = helper(cur[i], `${path}[${i}]`);
-          if (p) {return p;}
+          if (p) {
+            return p;
+          }
         }
       } else {
         for (const k of Object.keys(cur)) {
           const p = helper(cur[k], path ? `${path}.${k}` : k);
-          if (p) {return p;}
+          if (p) {
+            return p;
+          }
         }
       }
       return null;
@@ -391,10 +515,14 @@ function findPathByValue(obj, target) {
     // Leaf node: compare
     try {
       if (typeof target === "string" && typeof cur === "string") {
-        if (cur.includes(target) || cur === target) {return path;}
+        if (cur.includes(target) || cur === target) {
+          return path;
+        }
       } else {
         // loose equality check for numbers/booleans
-        if (cur === target) {return path;}
+        if (cur === target) {
+          return path;
+        }
       }
     } catch (e) {
       // ignore
@@ -407,13 +535,17 @@ function findPathByValue(obj, target) {
 
 // Helpers to apply suggestion objects to a document object
 function setNested(obj, path, value) {
-  if (!path) {return;}
+  if (!path) {
+    return;
+  }
   const parts = path.split(".");
   let cur = obj;
   for (let i = 0; i < parts.length; i++) {
     const part = parts[i];
     const m = part.match(/([a-zA-Z0-9_\-]+)(?:\[(\d+)\])?/);
-    if (!m) {throw new Error("Invalid path part: " + part);}
+    if (!m) {
+      throw new Error("Invalid path part: " + part);
+    }
     const key = m[1];
     const idx = m[2] !== undefined ? parseInt(m[2], 10) : null;
     const isLast = i === parts.length - 1;
@@ -439,13 +571,17 @@ function setNested(obj, path, value) {
 }
 
 function deleteNested(obj, path) {
-  if (!path) {return;}
+  if (!path) {
+    return;
+  }
   const parts = path.split(".");
   let cur = obj;
   for (let i = 0; i < parts.length; i++) {
     const part = parts[i];
     const m = part.match(/([a-zA-Z0-9_\-]+)(?:\[(\d+)\])?/);
-    if (!m) {return;}
+    if (!m) {
+      return;
+    }
     const key = m[1];
     const idx = m[2] !== undefined ? parseInt(m[2], 10) : null;
     const isLast = i === parts.length - 1;
@@ -457,33 +593,50 @@ function deleteNested(obj, path) {
       }
       return;
     }
-    if (!(key in cur)) {return;}
+    if (!(key in cur)) {
+      return;
+    }
     cur = cur[key];
     if (idx !== null) {
-      if (!Array.isArray(cur)) {return;}
+      if (!Array.isArray(cur)) {
+        return;
+      }
       cur = cur[idx];
     }
-    if (cur === null) {return;}
+    if (cur === null) {
+      return;
+    }
   }
 }
 
 function applySuggestionToDoc(doc, suggestion, jsyaml) {
-  if (!suggestion) {return;}
+  if (!suggestion) {
+    return;
+  }
   const action = suggestion.action || "insert";
   const target = suggestion.targetPath;
   let snippet = suggestion.snippetObj;
   if (snippet === undefined && suggestion.snippetYaml && jsyaml) {
-    try { snippet = jsyaml.load(suggestion.snippetYaml); } catch (e) { snippet = undefined; }
+    try {
+      snippet = jsyaml.load(suggestion.snippetYaml);
+    } catch (e) {
+      snippet = undefined;
+    }
   }
   if (action === "insert" || action === "replace" || action === "patch") {
     // For insert/replace, set the nested value
-    setNested(doc, target, snippet === undefined ? (suggestion.snippetYaml || {}) : snippet);
+    setNested(doc, target, snippet === undefined ? suggestion.snippetYaml || {} : snippet);
   } else if (action === "remove") {
     deleteNested(doc, target);
   }
 }
 
-export async function previewPatchedYaml(yamlText, docIndex, suggestion, opts = { fullStream: false }) {
+export async function previewPatchedYaml(
+  yamlText,
+  docIndex,
+  suggestion,
+  opts = { fullStream: false }
+) {
   const jsyaml = await resolveJsYaml();
   const docs = [];
   try {
@@ -491,7 +644,9 @@ export async function previewPatchedYaml(yamlText, docIndex, suggestion, opts = 
   } catch (e) {
     throw new Error("Failed to parse YAML for preview: " + (e && e.message));
   }
-  if (!docs[docIndex]) {return null;}
+  if (!docs[docIndex]) {
+    return null;
+  }
   const doc = docs[docIndex];
   applySuggestionToDoc(doc, suggestion, jsyaml);
   // Return the patched document YAML snippet (single-doc) or full multi-doc stream
@@ -499,7 +654,7 @@ export async function previewPatchedYaml(yamlText, docIndex, suggestion, opts = 
     if (opts && opts.fullStream) {
       // replace the doc at docIndex in docs and dump all with '---' separators
       docs[docIndex] = doc;
-      const parts = docs.map(d => jsyaml.dump(d, { noRefs: true, sortKeys: false }));
+      const parts = docs.map((d) => jsyaml.dump(d, { noRefs: true, sortKeys: false }));
       return parts.join("\n---\n");
     }
     return jsyaml.dump(doc, { noRefs: true, sortKeys: false });

@@ -36,15 +36,21 @@ async function tryParseYamlAll(text) {
       if (docs.length === 0) {
         try {
           const single = jsyaml.load(text);
-          if (single !== undefined && single !== null) {docs.push(single);}
-        } catch (e) { /* ignore */ }
+          if (single !== undefined && single !== null) {
+            docs.push(single);
+          }
+        } catch (e) {
+          /* ignore */
+        }
       }
       return { ok: true, docs };
     }
 
     // Fallback: try JSON
     const j = tryParseJson(text);
-    if (j.ok) {docs.push(j.value);}
+    if (j.ok) {
+      docs.push(j.value);
+    }
     return { ok: true, docs };
   } catch (e) {
     return { ok: false, error: e };
@@ -52,19 +58,31 @@ async function tryParseYamlAll(text) {
 }
 
 function detectDocType(obj) {
-  if (!obj || typeof obj !== "object") {return null;}
+  if (!obj || typeof obj !== "object") {
+    return null;
+  }
   const kindRaw = obj.kind || "";
   const kind = String(kindRaw).toLowerCase();
   const apiVersion = (obj.apiVersion || "").toString().toLowerCase();
   // debug removed
   // Consider a document OpenAPI only if it explicitly contains an 'openapi'
   // or 'swagger' string field, or structural keys like 'paths'/'components'.
-  const hasOpenApiField = (typeof obj.openapi === "string" && String(obj.openapi).trim()) || (typeof obj.swagger === "string" && String(obj.swagger).trim());
-  if (hasOpenApiField) {return "openapi";}
-  if (obj && typeof obj === "object" && (obj.paths || obj.components || obj.definitions)) {return "openapi";}
+  const hasOpenApiField =
+    (typeof obj.openapi === "string" && String(obj.openapi).trim()) ||
+    (typeof obj.swagger === "string" && String(obj.swagger).trim());
+  if (hasOpenApiField) {
+    return "openapi";
+  }
+  if (obj && typeof obj === "object" && (obj.paths || obj.components || obj.definitions)) {
+    return "openapi";
+  }
   // Robust CRD detection: match kind or apiVersion
-  if (kind && kind.includes("customresourcedefinition")) {return "crd";}
-  if (apiVersion && apiVersion.includes("apiextensions.k8s.io")) {return "crd";}
+  if (kind && kind.includes("customresourcedefinition")) {
+    return "crd";
+  }
+  if (apiVersion && apiVersion.includes("apiextensions.k8s.io")) {
+    return "crd";
+  }
   return null;
 }
 
@@ -85,21 +103,19 @@ async function parseSchemaText(text) {
       out.errors.push(asJson.error && asJson.error.message ? asJson.error.message : "parse error");
       return out;
     }
-    out.docs = (asYaml.docs || []).filter(d => d !== null && d !== undefined);
+    out.docs = (asYaml.docs || []).filter((d) => d !== null && d !== undefined);
   }
 
   // Classify docs
   // docs counted for diagnostics (no-op)
-  out.docs.forEach(d => {
+  out.docs.forEach((d) => {
     const t = detectDocType(d);
     // Prefer CRD detection first to avoid accidental openapi assignment
     if (t === "crd") {
       out.crds.push(d);
-    }
-    else if (t === "openapi") {
+    } else if (t === "openapi") {
       out.openapi = d;
-    }
-    else {
+    } else {
       // Heuristics: OpenAPI v3 has 'components' or 'paths'
       if (d && typeof d === "object" && (d.paths || d.components || d.definitions)) {
         out.openapi = out.openapi || d;
@@ -113,10 +129,12 @@ async function parseSchemaText(text) {
     for (const d of out.docs) {
       try {
         const s = JSON.stringify(d || {}).toLowerCase();
-        if (s.includes("\"kind\":\"customresourcedefinition\"") || s.includes("apiextensions.k8s.io")) {
+        if (s.includes('"kind":"customresourcedefinition"') || s.includes("apiextensions.k8s.io")) {
           out.crds.push(d);
         }
-      } catch (e) { /* ignore stringify failures */ }
+      } catch (e) {
+        /* ignore stringify failures */
+      }
     }
   }
 
@@ -124,8 +142,12 @@ async function parseSchemaText(text) {
 }
 
 function summarizeSchema(parsed) {
-  if (!parsed) {return { msg: "no schema" };}
-  const openapi = parsed.openapi ? (parsed.openapi.openapi || parsed.openapi.swagger || "unknown") : null;
+  if (!parsed) {
+    return { msg: "no schema" };
+  }
+  const openapi = parsed.openapi
+    ? parsed.openapi.openapi || parsed.openapi.swagger || "unknown"
+    : null;
   return {
     hasOpenAPI: !!parsed.openapi,
     openapiVersion: openapi || null,
@@ -136,51 +158,98 @@ function summarizeSchema(parsed) {
 // --- Validation helpers ---
 function _splitApiVersion(apiVersion) {
   const s = (apiVersion || "").toString();
-  if (!s) {return { group: "", version: "" };}
+  if (!s) {
+    return { group: "", version: "" };
+  }
   const parts = s.split("/");
-  if (parts.length === 1) {return { group: "", version: parts[0] };}
+  if (parts.length === 1) {
+    return { group: "", version: parts[0] };
+  }
   return { group: parts.slice(0, -1).join("/"), version: parts[parts.length - 1] };
 }
 
 function _matchCRDForResource(resource, crds) {
-  if (!resource || !crds || !Array.isArray(crds)) {return null;}
+  if (!resource || !crds || !Array.isArray(crds)) {
+    return null;
+  }
   const { group: resGroup, version: resVersion } = _splitApiVersion(resource.apiVersion || "");
   const resKind = (resource.kind || "").toString();
   for (const crd of crds) {
     try {
-      const crdGroup = (crd.spec && crd.spec.group) ? String(crd.spec.group) : "";
-      const crdKind = (crd.spec && crd.spec.names && crd.spec.names.kind) ? String(crd.spec.names.kind) : "";
-      if (!crdKind) {continue;}
-      if (crdKind !== resKind) {continue;}
-      const versions = crd.spec && Array.isArray(crd.spec.versions) ? crd.spec.versions : (crd.spec && crd.spec.version ? [{ name: crd.spec.version, schema: crd.spec.validation && crd.spec.validation.openAPIV3Schema ? { openAPIV3Schema: crd.spec.validation.openAPIV3Schema } : null }] : []);
+      const crdGroup = crd.spec && crd.spec.group ? String(crd.spec.group) : "";
+      const crdKind =
+        crd.spec && crd.spec.names && crd.spec.names.kind ? String(crd.spec.names.kind) : "";
+      if (!crdKind) {
+        continue;
+      }
+      if (crdKind !== resKind) {
+        continue;
+      }
+      const versions =
+        crd.spec && Array.isArray(crd.spec.versions)
+          ? crd.spec.versions
+          : crd.spec && crd.spec.version
+            ? [
+                {
+                  name: crd.spec.version,
+                  schema:
+                    crd.spec.validation && crd.spec.validation.openAPIV3Schema
+                      ? { openAPIV3Schema: crd.spec.validation.openAPIV3Schema }
+                      : null,
+                },
+              ]
+            : [];
       for (const v of versions) {
-        const name = (v && v.name) ? String(v.name) : "";
+        const name = v && v.name ? String(v.name) : "";
         // API-version match: group must match and version name must match resource version
         if (String(crdGroup) === String(resGroup) && name && name === resVersion) {
           // try to get the schema object (openAPIV3Schema)
-          const schema = (v && v.schema && v.schema.openAPIV3Schema) ? v.schema.openAPIV3Schema : (v && v.schema && v.schema.openAPIV3Schema === undefined && v.schema ? v.schema : (crd.spec && crd.spec.validation && crd.spec.validation.openAPIV3Schema ? crd.spec.validation.openAPIV3Schema : null));
+          const schema =
+            v && v.schema && v.schema.openAPIV3Schema
+              ? v.schema.openAPIV3Schema
+              : v && v.schema && v.schema.openAPIV3Schema === undefined && v.schema
+                ? v.schema
+                : crd.spec && crd.spec.validation && crd.spec.validation.openAPIV3Schema
+                  ? crd.spec.validation.openAPIV3Schema
+                  : null;
           return { crd, schema };
         }
       }
-    } catch (e) { /* ignore malformed CRD */ }
+    } catch (e) {
+      /* ignore malformed CRD */
+    }
   }
   return null;
 }
 
 function _typeMatches(expected, val) {
-  if (expected === "integer") {return Number.isInteger(val);}
-  if (expected === "number") {return typeof val === "number";}
-  if (expected === "string") {return typeof val === "string";}
-  if (expected === "boolean") {return typeof val === "boolean";}
-  if (expected === "object") {return val !== null && typeof val === "object" && !Array.isArray(val);}
-  if (expected === "array") {return Array.isArray(val);}
+  if (expected === "integer") {
+    return Number.isInteger(val);
+  }
+  if (expected === "number") {
+    return typeof val === "number";
+  }
+  if (expected === "string") {
+    return typeof val === "string";
+  }
+  if (expected === "boolean") {
+    return typeof val === "boolean";
+  }
+  if (expected === "object") {
+    return val !== null && typeof val === "object" && !Array.isArray(val);
+  }
+  if (expected === "array") {
+    return Array.isArray(val);
+  }
   // fallback: accept anything
   return true;
 }
 
 function validateAgainstOpenAPIV3Schema(schema, obj, path = "", opts) {
   const errors = [];
-  if (!schema || typeof schema !== "object") {return errors;}
+  if (!schema || typeof schema !== "object") {
+    return errors;
+  }
   const resolveRef = opts && typeof opts.resolveRef === "function" ? opts.resolveRef : (x) => x;
   const t = schema.type || (schema.properties ? "object" : null);
 
@@ -189,7 +258,10 @@ function validateAgainstOpenAPIV3Schema(schema, obj, path = "", opts) {
     // Check required fields at this level
     for (const r of req) {
       if (!(obj && Object.prototype.hasOwnProperty.call(obj, r))) {
-        errors.push({ path: path ? path + "." + r : r, msg: `Missing required field: ${path ? path + "." + r : r}` });
+        errors.push({
+          path: path ? path + "." + r : r,
+          msg: `Missing required field: ${path ? path + "." + r : r}`,
+        });
         // [schema-validator] missing required field
       }
     }
@@ -202,14 +274,24 @@ function validateAgainstOpenAPIV3Schema(schema, obj, path = "", opts) {
       if (val !== undefined) {
         if (expected && !_typeMatches(expected, val)) {
           const actualType = Array.isArray(val) ? "array" : typeof val;
-          errors.push({ path: childPath, msg: `Type mismatch for ${childPath}: expected ${expected}, got ${actualType} (${JSON.stringify(val)})` });
+          errors.push({
+            path: childPath,
+            msg: `Type mismatch for ${childPath}: expected ${expected}, got ${actualType} (${JSON.stringify(val)})`,
+          });
           // [schema-validator] type mismatch
         }
         // arrays: validate items and required fields in items
         if (expected === "array") {
           // Check minItems
-          if (propSchema.minItems !== undefined && Array.isArray(val) && val.length < propSchema.minItems) {
-            errors.push({ path: childPath, msg: `minItems: expected at least ${propSchema.minItems}` });
+          if (
+            propSchema.minItems !== undefined &&
+            Array.isArray(val) &&
+            val.length < propSchema.minItems
+          ) {
+            errors.push({
+              path: childPath,
+              msg: `minItems: expected at least ${propSchema.minItems}`,
+            });
             // [schema-validator] minItems failed
           }
           if (Array.isArray(val) && propSchema.items) {
@@ -217,27 +299,45 @@ function validateAgainstOpenAPIV3Schema(schema, obj, path = "", opts) {
             val.forEach((el, idx) => {
               // Validate type
               if (itemSchemaResolved.type && !_typeMatches(itemSchemaResolved.type, el)) {
-                errors.push({ path: `${childPath}[${idx}]`, msg: `type mismatch: expected ${itemSchemaResolved.type}` });
+                errors.push({
+                  path: `${childPath}[${idx}]`,
+                  msg: `type mismatch: expected ${itemSchemaResolved.type}`,
+                });
                 // [schema-validator] array item type mismatch
               }
               // Validate required fields in array items
               if (itemSchemaResolved.properties || itemSchemaResolved.required) {
                 // If el is undefined/null, report all required fields as missing
                 if (el === undefined || el === null) {
-                  const reqArr = Array.isArray(itemSchemaResolved.required) ? itemSchemaResolved.required : [];
+                  const reqArr = Array.isArray(itemSchemaResolved.required)
+                    ? itemSchemaResolved.required
+                    : [];
                   for (const r of reqArr) {
-                    errors.push({ path: `${childPath}[${idx}].${r}`, msg: `Missing required field: ${childPath}[${idx}].${r}` });
+                    errors.push({
+                      path: `${childPath}[${idx}].${r}`,
+                      msg: `Missing required field: ${childPath}[${idx}].${r}`,
+                    });
                     // [schema-validator] missing required field in array item
                   }
                 } else {
-                  errors.push(...validateAgainstOpenAPIV3Schema(itemSchemaResolved, el, `${childPath}[${idx}]`, opts));
+                  errors.push(
+                    ...validateAgainstOpenAPIV3Schema(
+                      itemSchemaResolved,
+                      el,
+                      `${childPath}[${idx}]`,
+                      opts
+                    )
+                  );
                 }
               }
             });
             // If array is present but empty, and items have required fields, report missing for index 0
             if (val.length === 0 && Array.isArray(itemSchemaResolved.required)) {
               for (const r of itemSchemaResolved.required) {
-                errors.push({ path: `${childPath}[0].${r}`, msg: `Missing required field: ${childPath}[0].${r} (array empty)` });
+                errors.push({
+                  path: `${childPath}[0].${r}`,
+                  msg: `Missing required field: ${childPath}[0].${r} (array empty)`,
+                });
                 // [schema-validator] array empty, missing required field
               }
             }
@@ -248,14 +348,22 @@ function validateAgainstOpenAPIV3Schema(schema, obj, path = "", opts) {
             // [schema-validator] array missing
             if (propSchema.items && Array.isArray(propSchema.items.required)) {
               for (const r of propSchema.items.required) {
-                errors.push({ path: `${childPath}[0].${r}`, msg: `Missing required field: ${childPath}[0].${r} (array missing)` });
+                errors.push({
+                  path: `${childPath}[0].${r}`,
+                  msg: `Missing required field: ${childPath}[0].${r} (array missing)`,
+                });
                 // [schema-validator] array missing, missing required field
               }
             }
           }
         }
         // nested objects: recurse if nested schema provided
-        if (expected === "object" && propSchema && propSchema.properties && typeof val === "object") {
+        if (
+          expected === "object" &&
+          propSchema &&
+          propSchema.properties &&
+          typeof val === "object"
+        ) {
           errors.push(...validateAgainstOpenAPIV3Schema(propSchema, val, childPath, opts));
         }
       } else {
@@ -274,19 +382,26 @@ function validateAgainstOpenAPIV3Schema(schema, obj, path = "", opts) {
 async function validateResourceAgainstClusterSchemas(resourceInput, clusterSchema) {
   // resourceInput can be object or YAML/JSON text
   let resource = null;
-  if (!resourceInput) {return { ok: false, errors: ["empty resource"] };}
+  if (!resourceInput) {
+    return { ok: false, errors: ["empty resource"] };
+  }
   if (typeof resourceInput === "string") {
     const j = tryParseJson(resourceInput);
-    if (j.ok) {resource = j.value;}
-    else {
+    if (j.ok) {
+      resource = j.value;
+    } else {
       const y = await tryParseYamlAll(resourceInput);
-      if (!y.ok) {return { ok: false, errors: ["parse error"] };}
-      resource = (y.docs && y.docs.length > 0) ? y.docs[0] : null;
+      if (!y.ok) {
+        return { ok: false, errors: ["parse error"] };
+      }
+      resource = y.docs && y.docs.length > 0 ? y.docs[0] : null;
     }
   } else if (typeof resourceInput === "object") {
     resource = resourceInput;
   }
-  if (!resource) {return { ok: false, errors: ["could not parse resource"] };}
+  if (!resource) {
+    return { ok: false, errors: ["could not parse resource"] };
+  }
 
   // Try CRD match first
   const crds = clusterSchema && clusterSchema.crds ? clusterSchema.crds : [];
@@ -297,11 +412,18 @@ async function validateResourceAgainstClusterSchemas(resourceInput, clusterSchem
   }
 
   // Try OpenAPI components.schemas (best-effort)
-  const openapis = clusterSchema && Array.isArray(clusterSchema.openapis) ? clusterSchema.openapis.map(o => o.spec || o) : (clusterSchema && clusterSchema.openapi ? [clusterSchema.openapi] : []);
+  const openapis =
+    clusterSchema && Array.isArray(clusterSchema.openapis)
+      ? clusterSchema.openapis.map((o) => o.spec || o)
+      : clusterSchema && clusterSchema.openapi
+        ? [clusterSchema.openapi]
+        : [];
   for (const spec of openapis) {
     try {
       const comps = spec && (spec.components || spec.definitions);
-      if (!comps) {continue;}
+      if (!comps) {
+        continue;
+      }
 
       // For OpenAPI v3, schemas usually live under components.schemas.
       // For Kubernetes swagger (OpenAPI v2), object models are often
@@ -318,8 +440,12 @@ async function validateResourceAgainstClusterSchemas(resourceInput, clusterSchem
       if (kind && schemas) {
         // Helper: resolve local $ref to actual schema object when possible
         const resolveRef = (sch) => {
-          if (!sch || typeof sch !== "object") {return sch;}
-          if (!sch.$ref || typeof sch.$ref !== "string") {return sch;}
+          if (!sch || typeof sch !== "object") {
+            return sch;
+          }
+          if (!sch.$ref || typeof sch.$ref !== "string") {
+            return sch;
+          }
           const ref = sch.$ref;
           // local component refs like '#/components/schemas/io.k8s...'
           const compPrefix = "#/components/schemas/";
@@ -344,7 +470,9 @@ async function validateResourceAgainstClusterSchemas(resourceInput, clusterSchem
         }
 
         // Heuristics: try matching by schema name suffix, title, x-kubernetes-group-version-kind
-        const { group: resGroup, version: resVersion } = _splitApiVersion(resource.apiVersion || "");
+        const { group: resGroup, version: resVersion } = _splitApiVersion(
+          resource.apiVersion || ""
+        );
         for (const [name, schRaw] of Object.entries(schemas)) {
           try {
             let sch = schRaw;
@@ -369,25 +497,39 @@ async function validateResourceAgainstClusterSchemas(resourceInput, clusterSchem
             }
 
             // 3) x-kubernetes-group-version-kind extension (array/object)
-            const xgvk = sch && (sch["x-kubernetes-group-version-kind"] || sch["x-kubernetes-group-version-kind"]);
+            const xgvk =
+              sch &&
+              (sch["x-kubernetes-group-version-kind"] || sch["x-kubernetes-group-version-kind"]);
             if (xgvk) {
               const items = Array.isArray(xgvk) ? xgvk : [xgvk];
               for (const gvk of items) {
-                if (!gvk) {continue;}
+                if (!gvk) {
+                  continue;
+                }
                 const gkind = String(gvk.kind || "");
                 const ggroup = String(gvk.group || "");
                 const gver = String(gvk.version || "");
-                if (!gkind) {continue;}
-                if (gkind === String(kind) && ( !ggroup || ggroup === String(resGroup) ) && ( !gver || gver === String(resVersion) )) {
+                if (!gkind) {
+                  continue;
+                }
+                if (
+                  gkind === String(kind) &&
+                  (!ggroup || ggroup === String(resGroup)) &&
+                  (!gver || gver === String(resVersion))
+                ) {
                   const errs = validateAgainstOpenAPIV3Schema(sch, resource, "", { resolveRef });
                   return { ok: errs.length === 0, errors: errs, matchedBy: "openapi" };
                 }
               }
             }
-          } catch (e) { /* ignore malformed schema entries */ }
+          } catch (e) {
+            /* ignore malformed schema entries */
+          }
         }
       }
-    } catch (e) { /* ignore malformed spec */ }
+    } catch (e) {
+      /* ignore malformed spec */
+    }
   }
 
   return { ok: false, errors: ["no matching schema found"], matchedBy: "none" };
@@ -404,13 +546,17 @@ async function validateYamlAgainstClusterSchemas(yamlText, clusterSchema) {
     return [{ ruleId: "parse-error", severity: "error", message: "Invalid YAML: parse failed" }];
   }
   const docs = parsed.docs || [];
-  if (!docs || docs.length === 0) {return [];}
+  if (!docs || docs.length === 0) {
+    return [];
+  }
 
   const results = [];
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
     // Skip empty/null docs
-    if (doc === null || doc === undefined) {continue;}
+    if (doc === null || doc === undefined) {
+      continue;
+    }
 
     // Only attempt schema validation for docs that look like Kubernetes
     // resources (have both apiVersion and kind). This avoids schema
@@ -428,11 +574,22 @@ async function validateYamlAgainstClusterSchemas(yamlText, clusterSchema) {
       for (const e of res.errors) {
         // If error is a simple string, convert to message
         if (typeof e === "string") {
-          results.push({ ruleId: "schema-validation", severity: "error", message: e, path: "", docIndex: i });
+          results.push({
+            ruleId: "schema-validation",
+            severity: "error",
+            message: e,
+            path: "",
+            docIndex: i,
+          });
         } else if (e && typeof e === "object") {
           const path = e.path || "";
           const msg = e.msg || e.message || "schema validation error";
-          const ruleId = res.matchedBy === "crd" ? "schema-crd" : (res.matchedBy === "openapi" ? "schema-openapi" : "schema-validation");
+          const ruleId =
+            res.matchedBy === "crd"
+              ? "schema-crd"
+              : res.matchedBy === "openapi"
+                ? "schema-openapi"
+                : "schema-validation";
           results.push({ ruleId, severity: "error", message: msg, path, docIndex: i });
         }
       }
@@ -452,5 +609,19 @@ try {
 } catch (e) {}
 
 // Provide both ESM and CommonJS compatibility
-if (typeof module !== "undefined" && module && module.exports) {module.exports = { parseSchemaText, summarizeSchema, validateResourceAgainstClusterSchemas, validateAgainstOpenAPIV3Schema, validateYamlAgainstClusterSchemas };}
-export { parseSchemaText, summarizeSchema, validateResourceAgainstClusterSchemas, validateAgainstOpenAPIV3Schema, validateYamlAgainstClusterSchemas };
+if (typeof module !== "undefined" && module && module.exports) {
+  module.exports = {
+    parseSchemaText,
+    summarizeSchema,
+    validateResourceAgainstClusterSchemas,
+    validateAgainstOpenAPIV3Schema,
+    validateYamlAgainstClusterSchemas,
+  };
+}
+export {
+  parseSchemaText,
+  summarizeSchema,
+  validateResourceAgainstClusterSchemas,
+  validateAgainstOpenAPIV3Schema,
+  validateYamlAgainstClusterSchemas,
+};

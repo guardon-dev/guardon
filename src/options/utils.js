@@ -2,7 +2,9 @@
 
 export function showToast(msg, opts = {}) {
   const toast = document.getElementById("toast");
-  if (!toast) {return;}
+  if (!toast) {
+    return;
+  }
   toast.textContent = msg;
   toast.style.background = opts.background || "#111";
   toast.style.display = "block";
@@ -36,24 +38,32 @@ export function saveRawKyverno(rawText, meta = {}) {
 }
 
 export function applyNormalizedRules(items, rules, saveRules, renderTable) {
-  if (!Array.isArray(items) || items.length === 0) {return 0;}
-  const normalized = items.map(r => ({
-    id: String(r.id || (r.description ? r.description.replace(/\s+/g,"-").toLowerCase() : `rule-${Date.now()}`)).trim(),
+  if (!Array.isArray(items) || items.length === 0) {
+    return 0;
+  }
+  const normalized = items.map((r) => ({
+    id: String(
+      r.id ||
+        (r.description ? r.description.replace(/\s+/g, "-").toLowerCase() : `rule-${Date.now()}`)
+    ).trim(),
     description: r.description || r.desc || "",
     kind: r.kind || "",
     match: r.match || "",
     pattern: r.pattern || "",
-    required: (r.required === true || r.required === "true"),
+    required: r.required === true || r.required === "true",
     severity: r.severity || "warning",
     message: r.message || "",
     fix: r.fix !== undefined ? r.fix : undefined,
     explain: r.explain || undefined,
   }));
 
-  let added = 0, replaced = 0;
+  let added = 0,
+    replaced = 0;
   for (const nr of normalized) {
-    if (!nr.id) {continue;}
-    const idx = rules.findIndex(r => r.id === nr.id);
+    if (!nr.id) {
+      continue;
+    }
+    const idx = rules.findIndex((r) => r.id === nr.id);
     if (idx !== -1) {
       // Overwrite existing rule with same id
       rules[idx] = nr;
@@ -65,9 +75,19 @@ export function applyNormalizedRules(items, rules, saveRules, renderTable) {
   }
 
   if (added || replaced) {
-    try { saveRules(); } catch { /* saveRules failed */ }
-    try { renderTable(); } catch { /* renderTable failed */ }
-    showToast(`Imported ${added} new, replaced ${replaced} existing rule(s)`, { background: "#059669" });
+    try {
+      saveRules();
+    } catch {
+      /* saveRules failed */
+    }
+    try {
+      renderTable();
+    } catch {
+      /* renderTable failed */
+    }
+    showToast(`Imported ${added} new, replaced ${replaced} existing rule(s)`, {
+      background: "#059669",
+    });
   }
   return added + replaced;
 }
